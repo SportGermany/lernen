@@ -82,6 +82,7 @@ object PaketPruefer {
                 }
                 is Uebung.Text -> html("$ort.loesung", ue.loesung, out)
                 is Uebung.Umschreiben -> Unit
+                is Uebung.Rechnen -> html("$ort.loesung", ue.loesung, out)
                 is Uebung.Unbekannt -> warnung(ort, "Übungstyp \"${ue.typ}\" kennt diese App-Version nicht, wird übersprungen")
             }
         }

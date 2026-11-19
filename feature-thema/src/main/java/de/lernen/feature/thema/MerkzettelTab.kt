@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.lernen.core.design.komponenten.Grau
 import de.lernen.core.design.komponenten.Karte
-import de.lernen.core.design.komponenten.KommtSpaeter
 import de.lernen.core.design.komponenten.Ueberschrift
 import de.lernen.core.design.theme.Lernen
 
@@ -74,12 +73,3 @@ internal fun MerkzettelTab(z: ThemaZustand, breit: Boolean) {
     )
 }
 
-@Composable
-internal fun UebenPlatzhalter(z: ThemaZustand) {
-    val u = z.paket.uebungen
-    KommtSpaeter(
-        "Üben kommt in Meilenstein 3",
-        "Dieses Thema hat schon ${u.anzahl} Übungen: ${u.einstieg.size} Einstieg, ${u.sicher.size} Sicher, ${u.schulaufgabe.size} Schulaufgabe. " +
-            "Sie werden mit dem nächsten Update freigeschaltet.",
-    )
-}

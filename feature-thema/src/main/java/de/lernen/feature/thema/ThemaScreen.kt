@@ -101,7 +101,7 @@ fun ThemaScreen(onZurueck: () -> Unit, vm: ThemaViewModel = hiltViewModel()) {
         BoxWithConstraints(Modifier.fillMaxSize().padding(innen), contentAlignment = Alignment.TopCenter) {
             val breit = maxWidth >= BREIT
             val scroll = rememberScrollState()
-            LaunchedEffect(zz.tab, zz.schritt) { scroll.scrollTo(0) }
+            LaunchedEffect(zz.tab, zz.schritt, zz.uebenStufe, zz.uebenIndex) { scroll.scrollTo(0) }
             Column(
                 Modifier.widthIn(max = 1100.dp).fillMaxWidth().verticalScroll(scroll).padding(horizontal = 14.dp).padding(bottom = 24.dp)
             ) {
@@ -126,7 +126,13 @@ fun ThemaScreen(onZurueck: () -> Unit, vm: ThemaViewModel = hiltViewModel()) {
                         onWortkiste = { wortkiste = true },
                         onFertig = { vm.waehleTab(ThemaTab.UEBEN) },
                     )
-                    ThemaTab.UEBEN -> UebenPlatzhalter(zz)
+                    ThemaTab.UEBEN -> UebenTab(
+                        zz, breit,
+                        onStufe = vm::waehleStufe,
+                        onIndex = vm::geheZuAufgabe,
+                        onErgebnis = vm::ergebnis,
+                        onWortkiste = { wortkiste = true },
+                    )
                     ThemaTab.MERKZETTEL -> MerkzettelTab(zz, breit)
                 }
             }

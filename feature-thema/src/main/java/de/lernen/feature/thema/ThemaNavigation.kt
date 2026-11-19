@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 
 /** Route zu einem Thema. [tab] und [schrittId] sind optional (sonst: letzte Position). */
 @Serializable
-data class ThemaRoute(val paketId: String, val tab: String? = null, val schrittId: String? = null)
+data class ThemaRoute(val paketId: String, val tab: String? = null, val schrittId: String? = null, val stufe: String? = null)
 
 enum class ThemaTab(val schluessel: String, val titel: String) {
     UEBERBLICK("ueberblick", "Überblick"),
@@ -20,8 +20,11 @@ enum class ThemaTab(val schluessel: String, val titel: String) {
     }
 }
 
-fun NavController.oeffneThema(paketId: String, tab: ThemaTab? = null) =
-    navigate(ThemaRoute(paketId, tab?.schluessel)) { launchSingleTop = true }
+fun NavController.oeffneThema(paketId: String, tab: ThemaTab? = null, stufe: String? = null) =
+    navigate(ThemaRoute(paketId, tab?.schluessel, stufe = stufe)) { launchSingleTop = true }
+
+/** Üben-Stufe „Wiederholen“. */
+const val STUFE_WIEDERHOLEN = "wdh"
 
 fun NavGraphBuilder.themaBildschirm(onZurueck: () -> Unit) {
     composable<ThemaRoute> { ThemaScreen(onZurueck = onZurueck) }

@@ -69,6 +69,12 @@ interface FortschrittDao {
     @Query("SELECT * FROM uebung_ergebnis")
     fun ergebnisse(): Flow<List<UebungErgebnisEntity>>
 
+    @Query("SELECT * FROM uebung_ergebnis WHERE paketId = :paketId")
+    fun ergebnisse(paketId: String): Flow<List<UebungErgebnisEntity>>
+
+    @Upsert
+    suspend fun setzeErgebnis(e: UebungErgebnisEntity)
+
     @Query("DELETE FROM haken WHERE paketId = :paketId")
     suspend fun loescheHaken(paketId: String)
 

@@ -37,7 +37,7 @@ class ThemaBilderTest {
 
     private val deutsch = Fach("deutsch", "Deutsch", "#C0532F", "#F0937A", "schreiben")
 
-    private fun zustand(datei: String, tab: ThemaTab, schritt: Int = 0, mitFortschritt: Boolean = true): ThemaZustand {
+    private fun zustand(datei: String, tab: ThemaTab, schritt: Int = 0, mitFortschritt: Boolean = true, stufe: String = "einstieg", index: Int = 0): ThemaZustand {
         val p = PaketParser.liesOderWirf(File("../core-data/src/main/assets/startpakete/$datei").readText())
         val haken = if (mitFortschritt) setOf(HakenSchluessel(p.begleiter[0].id, 0), HakenSchluessel(p.begleiter[0].id, 1)) +
             p.begleiter[0].muss.indices.map { HakenSchluessel(p.begleiter[0].id, it) } else emptySet()
@@ -46,6 +46,8 @@ class ThemaBilderTest {
             tipps = p.begleiter.associate { it.id to 2 },
             antworten = mapOf(p.begleiter[schritt].id to 0),
             schritt = schritt, tab = tab,
+            ergebnisse = mapOf("einstieg-0" to de.lernen.core.data.paket.ErgebnisStatus.FALSCH),
+            uebenStufe = stufe, uebenIndex = mapOf(stufe to index),
         )
     }
 
@@ -98,5 +100,17 @@ class ThemaBilderTest {
         val z = zustand("deutsch-schilderung-ueberarbeiten.json", ThemaTab.MERKZETTEL)
         paparazzi.unsafeUpdateConfig(DeviceConfig.PIXEL_C.copy(orientation = ScreenOrientation.LANDSCAPE, screenWidth = 2560, screenHeight = 1800))
         paparazzi.snapshot { Rahmen { MerkzettelTab(z, it) } }
+    }
+
+    @Test fun uebenTippen() {
+        val z = zustand("deutsch-arbeitsheft-s31-klassensprecherfahrt.json", ThemaTab.UEBEN, stufe = "sicher", index = 0)
+        paparazzi.unsafeUpdateConfig(DeviceConfig.PIXEL_5.copy(screenHeight = 2000))
+        paparazzi.snapshot { Rahmen { UebenTab(z, it, {}, {}, { _, _ -> }, {}) } }
+    }
+
+    @Test fun uebenTextTablet() {
+        val z = zustand("deutsch-schilderung-ueberarbeiten.json", ThemaTab.UEBEN, stufe = "schulaufgabe", index = 1)
+        paparazzi.unsafeUpdateConfig(DeviceConfig.PIXEL_C.copy(orientation = ScreenOrientation.LANDSCAPE, screenWidth = 2560, screenHeight = 1900))
+        paparazzi.snapshot { Rahmen { UebenTab(z, it, {}, {}, { _, _ -> }, {}) } }
     }
 }

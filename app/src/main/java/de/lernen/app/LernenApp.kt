@@ -30,10 +30,12 @@ import de.lernen.feature.katalog.KatalogRoute
 import de.lernen.feature.katalog.katalogBildschirm
 import de.lernen.feature.start.StartRoute
 import de.lernen.feature.start.startBildschirm
+import de.lernen.feature.thema.STUFE_WIEDERHOLEN
 import de.lernen.feature.thema.ThemaTab
 import de.lernen.feature.thema.oeffneThema
 import de.lernen.feature.thema.themaBildschirm
 import de.lernen.feature.werkzeuge.WerkzeugeRoute
+import de.lernen.feature.werkzeuge.oeffneWerkzeug
 import de.lernen.feature.werkzeuge.werkzeugeBildschirm
 import kotlin.reflect.KClass
 
@@ -79,7 +81,7 @@ fun LernenApp() {
         NavHost(nav, startDestination = StartRoute) {
             startBildschirm(
                 onThema = { nav.oeffneThema(it) },
-                onWiederholen = { nav.oeffneThema(it, ThemaTab.UEBEN) },
+                onWiederholen = { nav.oeffneThema(it, ThemaTab.UEBEN, STUFE_WIEDERHOLEN) },
                 onFach = { nav.oben(FaecherRoute(it)) },
                 onEinstellungen = { nav.navigate(EinstellungenRoute) },
             )
@@ -87,7 +89,7 @@ fun LernenApp() {
             themaBildschirm(onZurueck = { nav.popBackStack() })
             katalogBildschirm(onThema = { nav.oeffneThema(it) })
             fragenBildschirm()
-            werkzeugeBildschirm()
+            werkzeugeBildschirm(onWerkzeug = { nav.oeffneWerkzeug(it) }, onZurueck = { nav.popBackStack() })
             einstellungenBildschirm(BuildConfig.VERSION_NAME, onZurueck = { nav.popBackStack() })
         }
     }

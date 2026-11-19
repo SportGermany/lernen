@@ -23,6 +23,8 @@ data class Uebersicht(
     val faecher: List<FachMitThemen>,
     val weitermachen: Weitermachen?,
     val offeneWiederholungen: Int,
+    /** Thema mit den meisten offenen Wiederholungen (sonst das Weitermachen-Thema). */
+    val wiederholenPaketId: String?,
 )
 
 /** Fasst Fächer, Pakete und Fortschritt für Start und Fächer zusammen. */
@@ -50,6 +52,7 @@ class UebersichtRepository @Inject constructor(
                 Weitermachen(it, fl.firstOrNull { f -> f.id == it.paket.fach }, it.paket.begleiter.firstOrNull()?.titel, false)
             }
         }
-        Uebersicht(proFach, weiter, wdh.values.sum())
+        val offen = wdh.filterKeys { id -> themen.any { it.paket.id == id } }
+        Uebersicht(proFach, weiter, offen.values.sum(), offen.maxByOrNull { it.value }?.key ?: weiter?.thema?.paket?.id)
     }
 }

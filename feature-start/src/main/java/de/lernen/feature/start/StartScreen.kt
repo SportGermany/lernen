@@ -134,8 +134,8 @@ private fun Inhalt(u: Uebersicht, onThema: (String) -> Unit, onWiederholen: (Str
         }
         Spacer(Modifier.height(14.dp))
         FilledTonalButton(
-            onClick = { w?.let { onWiederholen(it.thema.paket.id) } },
-            enabled = w != null,
+            onClick = { u.wiederholenPaketId?.let(onWiederholen) },
+            enabled = u.wiederholenPaketId != null,
             modifier = Modifier.fillMaxWidth().height(48.dp),
         ) { Text("Wiederholen" + if (u.offeneWiederholungen > 0) " · ${u.offeneWiederholungen} offen" else "") }
     }

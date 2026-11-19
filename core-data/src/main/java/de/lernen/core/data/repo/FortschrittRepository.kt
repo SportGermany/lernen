@@ -5,6 +5,8 @@ import de.lernen.core.data.db.HakenEntity
 import de.lernen.core.data.db.PositionEntity
 import de.lernen.core.data.db.PruefAntwortEntity
 import de.lernen.core.data.db.TippStandEntity
+import de.lernen.core.data.db.UebungErgebnisEntity
+import de.lernen.core.data.paket.ErgebnisStatus
 import de.lernen.core.data.paket.HakenSchluessel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -51,6 +53,14 @@ class FortschrittRepository @Inject constructor(
 
     suspend fun merkePosition(paketId: String, schrittId: String?, tab: String) =
         dao.setzePosition(PositionEntity(paketId, schrittId, tab, System.currentTimeMillis()))
+
+    /** Ergebnis je Aufgaben-id eines Pakets. */
+    fun ergebnisse(paketId: String): Flow<Map<String, ErgebnisStatus>> = dao.ergebnisse(paketId).map { l ->
+        l.mapNotNull { e -> ErgebnisStatus.von(e.status)?.let { e.aufgabeId to it } }.toMap()
+    }
+
+    suspend fun setzeErgebnis(paketId: String, aufgabeId: String, stufe: String, status: ErgebnisStatus) =
+        dao.setzeErgebnis(UebungErgebnisEntity(paketId, aufgabeId, stufe, status.schluessel, System.currentTimeMillis()))
 
     /** Anzahl Übungen mit "falsch" oder "unsicher" (für "Wiederholen"). */
     val offeneWiederholungen: Flow<Map<String, Int>> = dao.ergebnisse().map { l ->

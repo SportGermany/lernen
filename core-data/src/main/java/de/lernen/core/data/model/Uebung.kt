@@ -56,6 +56,15 @@ sealed interface Uebung {
         val loesung: String,
     ) : Uebung
 
+    /** Rechenaufgabe (Mathe/Physik): Aufgabe, Musterlösung, optional Ergebnis und Tipp. */
+    data class Rechnen(
+        override val id: String?,
+        val aufgabe: String,
+        val loesung: String,
+        val ergebnis: String?,
+        val tipp: String?,
+    ) : Uebung
+
     /** Typ, den diese App-Version noch nicht kennt (z. B. "rechenaufgabe" vor Meilenstein 5). */
     data class Unbekannt(override val id: String?, val typ: String, val roh: JsonObject) : Uebung
 }
@@ -79,6 +88,7 @@ object UebungSerializer : KSerializer<Uebung> {
             "tippen" -> Uebung.Tippen(id, o.req("frage"), o.tokens(), o.str("warum") ?: "")
             "umschreiben" -> Uebung.Umschreiben(id, o.req("frage"), o.req("satz"), o.str("tipp"), o.req("loesung"))
             "text" -> Uebung.Text(id, o.req("titel"), o.str("vlabel"), o.req("auftrag"), o.str("vorlage"), o.req("loesung"))
+            "rechenaufgabe" -> Uebung.Rechnen(id, o.req("aufgabe"), o.req("loesung"), o.str("ergebnis"), o.str("tipp"))
             else -> Uebung.Unbekannt(id, typ ?: "", o)
         }
     }
@@ -109,6 +119,10 @@ object UebungSerializer : KSerializer<Uebung> {
             is Uebung.Text -> {
                 put("typ", "text"); put("id", u.id); put("titel", u.titel); put("vlabel", u.vlabel)
                 put("auftrag", u.auftrag); put("vorlage", u.vorlage); put("loesung", u.loesung)
+            }
+            is Uebung.Rechnen -> {
+                put("typ", "rechenaufgabe"); put("id", u.id); put("aufgabe", u.aufgabe); put("loesung", u.loesung)
+                put("ergebnis", u.ergebnis); put("tipp", u.tipp)
             }
             is Uebung.Unbekannt -> return u.roh
         }

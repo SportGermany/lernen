@@ -82,11 +82,11 @@ class PaketParserTest {
             "\"fach\": \"deutsch\", \"neuesFeld\": {\"x\": 1},"
         ).replace(
             "\"einstieg\": [",
-            "\"einstieg\": [ {\"typ\": \"rechenaufgabe\", \"aufgabe\": \"1+1\"},"
+            "\"einstieg\": [ {\"typ\": \"zuordnen\", \"paare\": []},"
         )
         val e = ok(text)
         assertTrue(e.paket.uebungen.einstieg[0] is Uebung.Unbekannt)
-        assertTrue(e.warnungen.any { it.text.contains("rechenaufgabe") })
+        assertTrue(e.warnungen.any { it.text.contains("zuordnen") })
     }
 
     @Test

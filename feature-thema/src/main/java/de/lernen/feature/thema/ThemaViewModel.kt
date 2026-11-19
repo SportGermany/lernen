@@ -7,6 +7,8 @@ import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.lernen.core.data.model.Fach
 import de.lernen.core.data.model.Paket
+import de.lernen.core.data.paket.Aufgabe
+import de.lernen.core.data.paket.ErgebnisStatus
 import de.lernen.core.data.paket.Fortschritt
 import de.lernen.core.data.repo.FachRepository
 import de.lernen.core.data.repo.FortschrittRepository
@@ -29,9 +31,19 @@ data class ThemaZustand(
     val antworten: Map<String, Int>,
     val schritt: Int,
     val tab: ThemaTab,
+    val ergebnisse: Map<String, ErgebnisStatus>,
+    /** "einstieg" | "sicher" | "schulaufgabe" | "wdh" */
+    val uebenStufe: String,
+    val uebenIndex: Map<String, Int>,
 )
 
-private data class Ansicht(val schritt: Int, val tab: ThemaTab, val bereit: Boolean)
+private data class Ansicht(
+    val schritt: Int,
+    val tab: ThemaTab,
+    val bereit: Boolean,
+    val uebenStufe: String = "einstieg",
+    val uebenIndex: Map<String, Int> = emptyMap(),
+)
 
 @HiltViewModel
 class ThemaViewModel @Inject constructor(
@@ -49,11 +61,14 @@ class ThemaViewModel @Inject constructor(
         pakete.paket(paketId).filterNotNull(),
         faecher.faecherAlle,
         fortschritt.haken(paketId),
-        combine(fortschritt.tipps(paketId), fortschritt.pruefAntworten(paketId)) { t, a -> t to a },
+        combine(fortschritt.tipps(paketId), fortschritt.pruefAntworten(paketId), fortschritt.ergebnisse(paketId)) { t, a, e -> Triple(t, a, e) },
         ansicht,
-    ) { p, f, h, (t, a), v ->
+    ) { p, f, h, (t, a, e), v ->
         if (!v.bereit) null
-        else ThemaZustand(p, f.firstOrNull { it.id == p.fach }, Fortschritt(p, h), t, a, v.schritt.coerceIn(0, (p.begleiter.size - 1).coerceAtLeast(0)), v.tab)
+        else ThemaZustand(
+            p, f.firstOrNull { it.id == p.fach }, Fortschritt(p, h), t, a,
+            v.schritt.coerceIn(0, (p.begleiter.size - 1).coerceAtLeast(0)), v.tab, e, v.uebenStufe, v.uebenIndex,
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /** Paket existiert nicht (mehr), z. B. nach dem Entfernen. */
@@ -67,7 +82,7 @@ class ThemaViewModel @Inject constructor(
             val schrittId = route.schrittId ?: pos?.schrittId
             val idx = p.begleiter.indexOfFirst { it.id == schrittId }.coerceAtLeast(0)
             val tab = ThemaTab.von(route.tab) ?: ThemaTab.von(pos?.tab) ?: ThemaTab.UEBERBLICK
-            ansicht.value = Ansicht(idx, tab, bereit = true)
+            ansicht.value = Ansicht(idx, tab, bereit = true, uebenStufe = route.stufe ?: "einstieg")
             merke()
         }
     }
@@ -75,6 +90,17 @@ class ThemaViewModel @Inject constructor(
     fun waehleTab(t: ThemaTab) { ansicht.value = ansicht.value.copy(tab = t); merke() }
 
     fun waehleSchritt(i: Int) { ansicht.value = ansicht.value.copy(schritt = i, tab = ThemaTab.BEGLEITER); merke() }
+
+    fun waehleStufe(s: String) { ansicht.value = ansicht.value.copy(uebenStufe = s) }
+
+    fun geheZuAufgabe(index: Int) {
+        val v = ansicht.value
+        ansicht.value = v.copy(uebenIndex = v.uebenIndex + (v.uebenStufe to index.coerceAtLeast(0)))
+    }
+
+    fun ergebnis(a: Aufgabe, status: ErgebnisStatus) = viewModelScope.launch {
+        fortschritt.setzeErgebnis(paketId, a.id, a.stufe.schluessel, status)
+    }
 
     fun umschalten(schrittId: String, index: Int, an: Boolean) = viewModelScope.launch {
         fortschritt.setzeHaken(paketId, schrittId, index, an)
