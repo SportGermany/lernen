@@ -9,6 +9,7 @@ import de.lernen.core.data.db.PaketEntity
 import de.lernen.core.data.model.Paket
 import de.lernen.core.data.paket.PaketParser
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -39,8 +40,16 @@ class PaketRepository @Inject constructor(
         paketDao.speichere(
             PaketEntity(p.id, p.typ, p.fach, p.titel, p.version, json, System.currentTimeMillis(), herkunft)
         )
+        // Haken zu Schritten/Punkten, die es nicht mehr gibt, verfallen still.
+        val gueltig = p.begleiter.associate { it.id to it.muss.size }
+        fortschrittDao.hakenListe(p.id)
+            .filter { h -> (gueltig[h.schrittId] ?: 0) <= h.index }
+            .forEach { fortschrittDao.entferneHaken(it.paketId, it.schrittId, it.index) }
         return p
     }
+
+    /** Die installierte Formelsammlung (Werkzeug), falls vorhanden. */
+    suspend fun formelsammlung(): Paket? = pakete.first().firstOrNull { it.typ == Paket.TYP_FORMELSAMMLUNG }
 
     /** Entfernt ein Paket. Mit [fortschrittLoeschen] = false bleibt der Fortschritt für später erhalten. */
     suspend fun entferne(id: String, fortschrittLoeschen: Boolean) {

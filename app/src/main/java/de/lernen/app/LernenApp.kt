@@ -85,7 +85,7 @@ fun LernenApp() {
             )
             faecherBildschirm(onThema = { nav.oeffneThema(it) }, onKatalog = { nav.oben(KatalogRoute) })
             themaBildschirm(onZurueck = { nav.popBackStack() })
-            katalogBildschirm()
+            katalogBildschirm(onThema = { nav.oeffneThema(it) })
             fragenBildschirm()
             werkzeugeBildschirm()
             einstellungenBildschirm(BuildConfig.VERSION_NAME, onZurueck = { nav.popBackStack() })

@@ -1,5 +1,6 @@
 package de.lernen.feature.einstellungen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +24,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -35,7 +37,9 @@ import androidx.navigation.compose.composable
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.lernen.core.data.model.Darstellung
 import de.lernen.core.data.model.Einstellungen
+import de.lernen.core.data.model.PaketQuelle
 import de.lernen.core.data.repo.EinstellungenRepository
+import de.lernen.core.data.repo.FachRepository
 import de.lernen.core.design.komponenten.Grau
 import de.lernen.core.design.komponenten.ZeileZwischen
 import kotlinx.coroutines.flow.SharingStarted
@@ -48,9 +52,17 @@ import javax.inject.Inject
 data object EinstellungenRoute
 
 @HiltViewModel
-class EinstellungenViewModel @Inject constructor(private val repo: EinstellungenRepository) : ViewModel() {
+class EinstellungenViewModel @Inject constructor(
+    private val repo: EinstellungenRepository,
+    faecherRepo: FachRepository,
+) : ViewModel() {
     val einstellungen = repo.einstellungen.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), Einstellungen())
+    val faecher = faecherRepo.faecherAlle.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     fun darstellung(d: Darstellung) = viewModelScope.launch { repo.setzeDarstellung(d) }
+    fun sichtbar(id: String, an: Boolean) = viewModelScope.launch { repo.setzeFachSichtbar(id, an) }
+    fun reihenfolge(ids: List<String>) = viewModelScope.launch { repo.setzeReihenfolge(ids) }
+    fun farbe(id: String, hex: String?) = viewModelScope.launch { repo.setzeFachFarbe(id, hex) }
+    fun quelle(q: PaketQuelle) = viewModelScope.launch { repo.setzeQuelle(q) }
 }
 
 fun NavGraphBuilder.einstellungenBildschirm(version: String, onZurueck: () -> Unit) {
@@ -80,11 +92,12 @@ fun EinstellungenScreen(version: String, onZurueck: () -> Unit, vm: Einstellunge
                     }
                 }
                 Abschnitt("Fächer")
-                Zeile("Ein-/ausblenden, Reihenfolge, Farbe", "Meilenstein 2")
+                val faecher by vm.faecher.collectAsStateWithLifecycle()
+                FaecherAbschnitt(faecher, e.ausgeblendeteFaecher, e.fachFarben, vm::sichtbar, vm::reihenfolge, vm::farbe)
                 Abschnitt("Erinnerung")
                 Zeile("Täglich erinnern", "Meilenstein 4")
                 Abschnitt("GitHub")
-                Zeile("Paket-Quelle", "SportGermany/lernen-pakete")
+                QuelleZeile(e.quelle, vm::quelle)
                 Zeile("Token für Fragen", "Meilenstein 4")
                 Abschnitt("Daten")
                 Zeile("Sicherung exportieren / importieren", "Meilenstein 4")
@@ -107,4 +120,37 @@ private fun Zeile(links: String, rechts: String) {
         Grau(rechts)
     }
     HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+}
+
+@Composable
+private fun QuelleZeile(q: PaketQuelle, onSpeichern: (PaketQuelle) -> Unit) {
+    var offen by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    ZeileZwischen(Modifier.clickable { offen = true }.padding(vertical = 13.dp)) {
+        Text("Paket-Quelle", modifier = Modifier.weight(1f))
+        Grau(q.anzeige)
+    }
+    HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+    if (offen) {
+        var owner by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(q.owner) }
+        var repo by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(q.repo) }
+        var branch by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(q.branch) }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { offen = false },
+            title = { Text("Paket-Quelle (GitHub)") },
+            text = {
+                Column {
+                    androidx.compose.material3.OutlinedTextField(owner, { owner = it }, label = { Text("Owner") }, singleLine = true)
+                    androidx.compose.material3.OutlinedTextField(repo, { repo = it }, label = { Text("Repository") }, singleLine = true)
+                    androidx.compose.material3.OutlinedTextField(branch, { branch = it }, label = { Text("Branch") }, singleLine = true)
+                    Grau("Nach dem Ändern im Katalog auf ↻ tippen.", Modifier.padding(top = 8.dp))
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = { onSpeichern(PaketQuelle(owner, repo, branch)); offen = false }, enabled = owner.isNotBlank() && repo.isNotBlank()) { Text("Speichern") }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { onSpeichern(PaketQuelle()); offen = false }) { Text("Zurücksetzen") }
+            },
+        )
+    }
 }

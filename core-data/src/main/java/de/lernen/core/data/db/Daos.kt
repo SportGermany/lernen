@@ -30,6 +30,9 @@ interface FortschrittDao {
     @Query("SELECT * FROM haken WHERE paketId = :paketId")
     fun haken(paketId: String): Flow<List<HakenEntity>>
 
+    @Query("SELECT * FROM haken WHERE paketId = :paketId")
+    suspend fun hakenListe(paketId: String): List<HakenEntity>
+
     @Query("SELECT * FROM haken")
     fun alleHaken(): Flow<List<HakenEntity>>
 
