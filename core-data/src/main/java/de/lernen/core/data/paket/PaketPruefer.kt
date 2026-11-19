@@ -31,7 +31,12 @@ object PaketPruefer {
         if (p.titel.isBlank()) fehler("titel", "fehlt")
 
         if (p.typ == Paket.TYP_FORMELSAMMLUNG) {
-            if (p.gebiete == null) fehler("gebiete", "fehlt bei Typ formelsammlung")
+            if (p.gebiete.isEmpty()) fehler("gebiete", "fehlt bei Typ formelsammlung")
+            val fids = mutableSetOf<String>()
+            p.gebiete.forEach { g -> g.formeln.forEach { f ->
+                if (!fids.add(f.id)) fehler("gebiete.${g.id}.${f.id}", "Formel-id doppelt")
+                f.groessen.forEachIndexed { i, t -> if (t.size != 3) fehler("gebiete.${g.id}.${f.id}.groessen[$i]", "braucht [Zeichen, Bedeutung, Einheit]") }
+            } }
             return out
         }
 
@@ -62,6 +67,8 @@ object PaketPruefer {
                 if (f.richtig !in f.optionen.indices) fehler("$ort.frage", "richtig=${f.richtig} liegt außerhalb der Optionen")
             }
             if (s.wortkiste && p.wortkiste.isEmpty()) warnung(ort, "wortkiste=true, aber das Paket hat keine Wortkiste")
+            s.muster?.let { html("$ort.muster", it, out) }
+            s.mitrechnen?.let { m -> if (m.art !in setOf("rechnen", "physik")) fehler(ort, "mitrechnen.art unbekannt: ${m.art}") }
             s.pruefung?.let { if (it !in setOf("aequivalenz", "loesung", "einheit")) fehler(ort, "pruefung unbekannt: $it") }
             if (s.hinweise.size > 3) warnung(ort, "mehr als 3 Tipps")
         }

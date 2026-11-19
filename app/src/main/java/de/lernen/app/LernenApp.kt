@@ -36,6 +36,7 @@ import de.lernen.feature.thema.ThemaTab
 import de.lernen.feature.thema.oeffneThema
 import de.lernen.feature.thema.themaBildschirm
 import de.lernen.feature.werkzeuge.WerkzeugeRoute
+import de.lernen.feature.werkzeuge.Werkzeug
 import de.lernen.feature.werkzeuge.oeffneWerkzeug
 import de.lernen.feature.werkzeuge.werkzeugeBildschirm
 import kotlin.reflect.KClass
@@ -87,7 +88,11 @@ fun LernenApp() {
                 onEinstellungen = { nav.navigate(EinstellungenRoute) },
             )
             faecherBildschirm(onThema = { nav.oeffneThema(it) }, onKatalog = { nav.oben(KatalogRoute) })
-            themaBildschirm(onZurueck = { nav.popBackStack() }, onFrage = { p, s -> nav.neueFrage(p, s) })
+            themaBildschirm(
+                onZurueck = { nav.popBackStack() },
+                onFrage = { p, s -> nav.neueFrage(p, s) },
+                onMitrechnen = { p, s, a -> nav.oeffneWerkzeug(Werkzeug.MITRECHNEN, a, if (s != null) p else null, s) },
+            )
             katalogBildschirm(onThema = { nav.oeffneThema(it) })
             fragenBildschirm(nav, onEinstellungen = { nav.navigate(EinstellungenRoute) })
             werkzeugeBildschirm(onWerkzeug = { nav.oeffneWerkzeug(it) }, onZurueck = { nav.popBackStack() })

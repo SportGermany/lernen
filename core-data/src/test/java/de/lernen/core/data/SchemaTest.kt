@@ -22,6 +22,12 @@ class SchemaTest {
         }
     }
 
+    @Test fun `Mathe- und Physik-Paket erfüllen das Schema`() {
+        for (n in listOf("mathe-lgs-einsetzungsverfahren.json", "physik-elektrische-leistung.json")) {
+            assertEquals(n, emptySet<Any>(), fehler(TestDaten.ressource(n)))
+        }
+    }
+
     @Test fun `Mini-Paket erfüllt das Schema`() = assertEquals(emptySet<Any>(), fehler(TestDaten.MINI))
 
     @Test fun `Schema erkennt Fehler`() {

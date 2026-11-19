@@ -2,7 +2,6 @@ package de.lernen.core.data.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
 
 /**
  * Ein Themenpaket im Format "lernen-paket/2".
@@ -24,8 +23,8 @@ data class Paket(
     val merkzettel: List<List<String>> = emptyList(),
     val wortkiste: List<WortGruppe> = emptyList(),
     val korrektur: List<List<String>> = emptyList(),
-    /** Nur Typ "formelsammlung" (Meilenstein 5). */
-    val gebiete: JsonElement? = null,
+    /** Nur Typ "formelsammlung". */
+    val gebiete: List<Gebiet> = emptyList(),
 ) {
     val istArbeitsheft: Boolean get() = typ == TYP_ARBEITSHEFT
 
@@ -91,9 +90,14 @@ data class Schritt(
     val vnLabel: List<String> = emptyList(),
     val hilfen: List<Hilfe> = emptyList(),
     val wortkiste: Boolean = false,
-    /** Mathe/Physik (Meilenstein 5): "aequivalenz" | "loesung" | "einheit" */
+    /** Mathe/Physik: "aequivalenz" | "loesung" | "einheit" */
     val pruefung: String? = null,
-    val mitrechnen: JsonElement? = null,
+    /** Musteraufgabe Schritt für Schritt (HTML). */
+    val muster: String? = null,
+    /** Daten für „Meine Aufgabe mitrechnen“. */
+    val mitrechnen: MitrechnenDaten? = null,
+    /** Englisch: Useful phrases. */
+    val phrases: List<String> = emptyList(),
 ) {
     /** Überschrift der Abhakliste. */
     val listenTitel: String get() = label ?: STANDARD_LABEL
@@ -138,3 +142,59 @@ data class Uebungen(
 data class MerkEintrag(val stichwort: String, val text: String)
 
 data class Korrekturzeichen(val zeichen: String, val bedeutung: String, val beispiel: String)
+
+@Serializable
+data class MitrechnenDaten(
+    /** "rechnen" oder "physik" */
+    val art: String = "rechnen",
+    /** Beispiel-Aufgabe: Gleichungen oder ein Term, je Zeile. */
+    val aufgabe: List<String> = emptyList(),
+    /** Tipps in Stufen. */
+    val tipps: List<String> = emptyList(),
+    val gegeben: List<GroesseDaten> = emptyList(),
+    val gesucht: GroesseDaten? = null,
+    /** id einer Formel aus der Formelsammlung. */
+    val formel: String? = null,
+    val ergebnis: GroesseDaten? = null,
+)
+
+@Serializable
+data class GroesseDaten(
+    val zeichen: String,
+    val name: String = "",
+    val wert: String = "",
+    val einheit: String = "",
+    val toleranz: Double = 0.02,
+)
+
+@Serializable
+data class Gebiet(
+    val id: String,
+    val titel: String,
+    val fach: String,
+    val klasse: String = "",
+    val formeln: List<Formel> = emptyList(),
+)
+
+@Serializable
+data class Formel(
+    val id: String,
+    val name: String,
+    val formel: String,
+    /** Tripel [Zeichen, Bedeutung, Einheit] */
+    val groessen: List<List<String>> = emptyList(),
+    val umstellungen: List<String> = emptyList(),
+    val hinweis: String? = null,
+    val stichwoerter: List<String> = emptyList(),
+) {
+    /** Umstellung nach einer Größe, z. B. "I = P : U" für "I". */
+    fun umgestelltNach(zeichen: String): String? =
+        (listOf(formel) + umstellungen).firstOrNull { it.substringBefore("=").trim() == zeichen }
+
+    fun passtZu(suche: String): Boolean {
+        val q = suche.trim().lowercase()
+        if (q.isEmpty()) return true
+        return name.lowercase().contains(q) || formel.lowercase().contains(q) ||
+            stichwoerter.any { it.lowercase().contains(q) } || groessen.any { g -> g.any { it.lowercase().contains(q) } }
+    }
+}

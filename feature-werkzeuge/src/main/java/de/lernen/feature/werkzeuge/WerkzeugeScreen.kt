@@ -40,7 +40,7 @@ data object WerkzeugeRoute
 
 /** Ein einzelnes Werkzeug. [art] siehe [Werkzeug]. [eingabe]: optional vorbelegte Aufgabe (Mitrechnen). */
 @Serializable
-data class WerkzeugRoute(val art: String, val eingabe: String? = null)
+data class WerkzeugRoute(val art: String, val eingabe: String? = null, val paketId: String? = null, val schrittId: String? = null)
 
 enum class Werkzeug(val schluessel: String, val titel: String, val untertitel: String, val symbol: String, val bereit: Boolean = true) {
     WORTKISTE("wortkiste", "Wortkiste", "Verben, Gefühle, Bilder", "Aa"),
@@ -56,7 +56,8 @@ enum class Werkzeug(val schluessel: String, val titel: String, val untertitel: S
     }
 }
 
-fun NavController.oeffneWerkzeug(w: Werkzeug, eingabe: String? = null) = navigate(WerkzeugRoute(w.schluessel, eingabe))
+fun NavController.oeffneWerkzeug(w: Werkzeug, eingabe: String? = null, paketId: String? = null, schrittId: String? = null) =
+    navigate(WerkzeugRoute(w.schluessel, eingabe, paketId, schrittId))
 
 fun NavGraphBuilder.werkzeugeBildschirm(onWerkzeug: (Werkzeug) -> Unit, onZurueck: () -> Unit) {
     composable<WerkzeugeRoute> { WerkzeugeScreen(onWerkzeug) }
@@ -108,7 +109,7 @@ fun WerkzeugScreen(w: Werkzeug, eingabe: String?, onZurueck: () -> Unit) {
             colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
         )
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-            Box(Modifier.widthIn(max = 900.dp).fillMaxWidth().padding(horizontal = 14.dp)) {
+            Box(Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(horizontal = 14.dp)) {
                 when (w) {
                     Werkzeug.WORTKISTE -> WortkisteWerkzeug()
                     Werkzeug.KORREKTUR -> KorrekturWerkzeug()

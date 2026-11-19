@@ -21,7 +21,7 @@ class PaketParserTest {
 
     @Test
     fun `alle drei Startpakete lassen sich fehlerfrei lesen`() {
-        assertEquals(3, TestDaten.startpakete.size)
+        assertEquals(4, TestDaten.startpakete.size)
         TestDaten.startpakete.forEach { (name, text) ->
             val e = ok(text)
             assertEquals("$name: Warnungen ${e.warnungen}", emptyList<Any>(), e.warnungen)
@@ -95,6 +95,23 @@ class PaketParserTest {
         assertTrue(PaketParser.lies("""{"format":"lernen-paket/2"}""") is PaketParser.Ergebnis.Fehler)
         val ohneRichtig = TestDaten.MINI.replace("\"richtig\": 0,", "")
         assertTrue(PaketParser.lies(ohneRichtig) is PaketParser.Ergebnis.Fehler)
+    }
+
+    @Test
+    fun `Mathe-, Physik-Paket und Formelsammlung werden gelesen`() {
+        val m = ok(TestDaten.ressource("mathe-lgs-einsetzungsverfahren.json")).paket
+        val mr = m.begleiter.first { it.id == "einsetzen" }.mitrechnen!!
+        assertEquals(listOf("y = 2x − 1", "3x + 2y = 12"), mr.aufgabe)
+        assertTrue(m.uebungen.sicher.all { it is Uebung.Rechnen })
+        val ph = ok(TestDaten.ressource("physik-elektrische-leistung.json")).paket
+        val pr = ph.begleiter.first { it.id == "rechnen" }.mitrechnen!!
+        assertEquals("physik", pr.art)
+        assertEquals("A", pr.ergebnis!!.einheit)
+        val fs = ok(TestDaten.paket("werkzeuge-formelsammlung.json")).paket
+        val f = fs.gebiete.flatMap { it.formeln }.first { it.id == pr.formel }
+        assertEquals("I = P : U", f.umgestelltNach("I"))
+        assertEquals("P = U·I", f.umgestelltNach("P"))
+        assertTrue(fs.gebiete.flatMap { it.formeln }.size > 50)
     }
 
     @Test

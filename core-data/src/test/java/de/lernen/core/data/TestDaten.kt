@@ -10,6 +10,8 @@ object TestDaten {
 
     fun paket(name: String) = startpakete.getValue(name)
 
+    fun ressource(name: String) = File("src/test/resources/$name").readText()
+
     val SCHREIBEN = "deutsch-schilderung-schreiben.json"
     val UEBERARBEITEN = "deutsch-schilderung-ueberarbeiten.json"
     val ARBEITSHEFT = "deutsch-arbeitsheft-s31-klassensprecherfahrt.json"

@@ -70,8 +70,10 @@ class PaketRepository @Inject constructor(
      * Ab Meilenstein 2 kommen Pakete aus dem Katalog.
      */
     suspend fun startpaketeEinrichten() {
-        if (paketDao.anzahl() > 0) return
+        val ersterStart = paketDao.anzahl() == 0
         val dateien = context.assets.list(STARTORDNER).orEmpty().filter { it.endsWith(".json") }
+            // Nach dem ersten Start nur noch die Formelsammlung nachrüsten, falls sie fehlt (Werkzeug, immer offline).
+            .filter { ersterStart || (it.startsWith("werkzeuge-") && formelsammlung() == null) }
         for (d in dateien) {
             val text = context.assets.open("$STARTORDNER/$d").bufferedReader().use { it.readText() }
             runCatching { speichere(text, HERKUNFT_START) }

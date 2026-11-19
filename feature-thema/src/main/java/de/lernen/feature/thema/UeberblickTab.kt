@@ -98,9 +98,10 @@ internal fun UeberblickTab(z: ThemaZustand, breit: Boolean, onSchritt: (Int) -> 
 
     // Muster (Schreiben) oder Vorher/Nachher (Überarbeiten)
     if (o.muster != null) {
-        UeberschriftMitSchalter("So sieht's fertig aus", marken) { marken = it }
+        val mitMarken = o.muster!!.contains("class=")
+        if (mitMarken) UeberschriftMitSchalter("So sieht's fertig aus", marken) { marken = it } else Ueberschrift("So sieht's fertig aus")
         Karte {
-            Legende(marken)
+            if (mitMarken) Legende(marken)
             o.ueberschrift?.let { Text(it, style = LeseStil.copy(fontSize = 18.sp, fontWeight = FontWeight.SemiBold), modifier = Modifier.padding(top = 12.dp, bottom = 6.dp)) }
             HtmlText(o.muster!!, stil = LeseStil, markierungen = marken)
         }

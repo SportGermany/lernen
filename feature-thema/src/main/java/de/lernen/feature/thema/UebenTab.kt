@@ -95,7 +95,7 @@ internal fun UebenTab(
         is Uebung.Tippen -> TippenAufgabe(a.id, u) { onErgebnis(a, if (it) ErgebnisStatus.RICHTIG else ErgebnisStatus.FALSCH) }
         is Uebung.Umschreiben -> UmschreibenAufgabe(a.id, u, onWortkiste.takeIf { z.paket.wortkiste.isNotEmpty() }) { onErgebnis(a, it) }
         is Uebung.Text -> TextAufgabe(a.id, u, z.paket.raster, breit) { onErgebnis(a, it) }
-        is Uebung.Rechnen -> RechenAufgabe(a.id, u, onMitrechnen) { onErgebnis(a, it) }
+        is Uebung.Rechnen -> RechenAufgabe(a.id, u, onMitrechnen.takeIf { u.aufgabe.contains('=') }) { onErgebnis(a, it) }
         is Uebung.Unbekannt -> Grau("Diese Aufgabe braucht eine neuere App-Version.")
     }
     Spacer(Modifier.height(8.dp))
@@ -268,7 +268,7 @@ private fun TextAufgabe(id: String, u: Uebung.Text, raster: List<String>, breit:
 private fun RechenAufgabe(id: String, u: Uebung.Rechnen, onMitrechnen: ((String) -> Unit)?, onWahl: (ErgebnisStatus) -> Unit) {
     var loesung by rememberSaveable(id) { mutableStateOf(false) }
     Karte {
-        Text(u.aufgabe.replace("\\n", "\n"), style = LeseStil.copy(fontSize = 18.sp, lineHeight = 28.sp), modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Lernen.farben.ton).padding(12.dp))
+        Text(u.aufgabe, style = LeseStil.copy(fontSize = 18.sp, lineHeight = 28.sp), modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Lernen.farben.ton).padding(12.dp))
         Spacer(Modifier.height(8.dp))
         Grau("Löse auf deinem Blatt oder rechne hier mit.", Modifier.padding(bottom = 10.dp))
         u.tipp?.let { Aufklappbar("Tipp") { Text(it, style = MaterialTheme.typography.bodyMedium) } }

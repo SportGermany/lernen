@@ -27,6 +27,8 @@ import de.lernen.core.design.komponenten.Aufklappbar
 import de.lernen.core.design.komponenten.BoxArt
 import de.lernen.core.design.komponenten.Grau
 import de.lernen.core.design.komponenten.HinweisBox
+import de.lernen.core.design.komponenten.HtmlText
+import de.lernen.core.design.theme.LeseStil
 import de.lernen.core.design.komponenten.Karte
 import de.lernen.core.design.komponenten.KartenTitel
 import de.lernen.core.design.komponenten.Punkte
@@ -48,6 +50,7 @@ internal fun BegleiterTab(
     onWortkiste: () -> Unit,
     onFertig: () -> Unit,
     onFrage: (String?) -> Unit = {},
+    onMitrechnen: (String) -> Unit = {},
 ) {
     val b = z.paket.begleiter
     if (b.isEmpty()) { Grau("Dieses Paket hat keinen Begleiter."); return }
@@ -64,7 +67,7 @@ internal fun BegleiterTab(
     Zweispaltig(
         breit,
         links = { Links(z, s, onHaken) },
-        rechts = { Rechts(z, s, breit, onTipp, onAntwort, onNochmal, onWortkiste) },
+        rechts = { Rechts(z, s, breit, onTipp, onAntwort, onNochmal, onWortkiste, onMitrechnen) },
     )
 
     TextButton(onClick = { onFrage(s.id) }, modifier = Modifier.fillMaxWidth()) { Text("Frage an Claude zu diesem Schritt") }
@@ -107,8 +110,25 @@ private fun Rechts(
     onAntwort: (String, Int, Boolean) -> Unit,
     onNochmal: (String) -> Unit,
     onWortkiste: () -> Unit,
+    onMitrechnen: (String) -> Unit,
 ) {
     val f = Lernen.farben
+
+    // Mathe/Physik: Mitrechnen und Musteraufgabe
+    if (s.mitrechnen != null) {
+        Button(onClick = { onMitrechnen(s.id) }, modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)) {
+            Text(if (s.mitrechnen!!.art == "physik") "Meine Aufgabe mitrechnen (Physik)" else "Meine Aufgabe mitrechnen")
+        }
+    }
+    s.muster?.let { m -> Aufklappbar("Musteraufgabe ansehen") { HtmlText(m, stil = LeseStil) } }
+
+    // Englisch: Useful phrases
+    if (s.phrases.isNotEmpty()) {
+        Karte(Modifier.padding(bottom = 10.dp)) {
+            KartenTitel("Useful phrases")
+            s.phrases.forEach { p -> Text(p, style = LeseStil.copy(fontSize = 15.sp, lineHeight = 22.sp), modifier = Modifier.padding(vertical = 2.dp)) }
+        }
+    }
 
     // Tipps in Stufen
     if (s.hinweise.isNotEmpty()) {

@@ -14,8 +14,8 @@ android {
         applicationId = "de.lernen.app"
         minSdk = Konfig.MIN_SDK
         targetSdk = Konfig.TARGET_SDK
-        versionCode = 4
-        versionName = "0.4.0"
+        versionCode = 5
+        versionName = "0.5.0"
     }
 
     // Signatur für Releases: nur über Umgebungsvariablen (GitHub-Secrets), nie im Repository.

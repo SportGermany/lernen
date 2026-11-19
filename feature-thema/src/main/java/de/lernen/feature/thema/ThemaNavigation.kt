@@ -27,6 +27,13 @@ fun NavController.oeffneThema(paketId: String, tab: ThemaTab? = null, stufe: Str
 /** Üben-Stufe „Wiederholen“. */
 const val STUFE_WIEDERHOLEN = "wdh"
 
-fun NavGraphBuilder.themaBildschirm(onZurueck: () -> Unit, onFrage: (paketId: String, schrittId: String?) -> Unit) {
-    composable<ThemaRoute> { e -> ThemaScreen(onZurueck = onZurueck, onFrage = { s -> onFrage(e.toRoute<ThemaRoute>().paketId, s) }) }
+fun NavGraphBuilder.themaBildschirm(
+    onZurueck: () -> Unit,
+    onFrage: (paketId: String, schrittId: String?) -> Unit,
+    onMitrechnen: (paketId: String, schrittId: String?, aufgabe: String?) -> Unit,
+) {
+    composable<ThemaRoute> { e ->
+        val id = e.toRoute<ThemaRoute>().paketId
+        ThemaScreen(onZurueck = onZurueck, onFrage = { s -> onFrage(id, s) }, onMitrechnen = { s, a -> onMitrechnen(id, s, a) })
+    }
 }
