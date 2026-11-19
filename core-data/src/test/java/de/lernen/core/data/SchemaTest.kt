@@ -22,8 +22,8 @@ class SchemaTest {
         }
     }
 
-    @Test fun `Mathe- und Physik-Paket erfüllen das Schema`() {
-        for (n in listOf("mathe-lgs-einsetzungsverfahren.json", "physik-elektrische-leistung.json")) {
+    @Test fun `Alle Beispielpakete (Mathe, Physik, Englisch) erfüllen das Schema`() {
+        for (n in File("src/test/resources").list()!!.filter { it.endsWith(".json") }) {
             assertEquals(n, emptySet<Any>(), fehler(TestDaten.ressource(n)))
         }
     }

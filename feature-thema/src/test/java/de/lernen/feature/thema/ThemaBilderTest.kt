@@ -38,7 +38,7 @@ class ThemaBilderTest {
     private val deutsch = Fach("deutsch", "Deutsch", "#C0532F", "#F0937A", "schreiben")
 
     private fun zustand(datei: String, tab: ThemaTab, schritt: Int = 0, mitFortschritt: Boolean = true, stufe: String = "einstieg", index: Int = 0): ThemaZustand {
-        val p = PaketParser.liesOderWirf(File("../core-data/src/main/assets/startpakete/$datei").readText())
+        val p = PaketParser.liesOderWirf((listOf("../core-data/src/main/assets/startpakete/", "../core-data/src/test/resources/").map { File(it + datei) }.first { it.exists() }).readText())
         val haken = if (mitFortschritt) setOf(HakenSchluessel(p.begleiter[0].id, 0), HakenSchluessel(p.begleiter[0].id, 1)) +
             p.begleiter[0].muss.indices.map { HakenSchluessel(p.begleiter[0].id, it) } else emptySet()
         return ThemaZustand(
@@ -112,5 +112,17 @@ class ThemaBilderTest {
         val z = zustand("deutsch-schilderung-ueberarbeiten.json", ThemaTab.UEBEN, stufe = "schulaufgabe", index = 1)
         paparazzi.unsafeUpdateConfig(DeviceConfig.PIXEL_C.copy(orientation = ScreenOrientation.LANDSCAPE, screenWidth = 2560, screenHeight = 1900))
         paparazzi.snapshot { Rahmen { UebenTab(z, it, {}, {}, { _, _ -> }, {}) } }
+    }
+
+    @Test fun begleiterEnglisch() {
+        val z = zustand("englisch-formal-email.json", ThemaTab.BEGLEITER, schritt = 1, mitFortschritt = false)
+        paparazzi.unsafeUpdateConfig(DeviceConfig.PIXEL_5.copy(screenHeight = 3000))
+        paparazzi.snapshot { Rahmen { begleiter(z, it)() } }
+    }
+
+    @Test fun begleiterMathe() {
+        val z = zustand("mathe-lgs-einsetzungsverfahren.json", ThemaTab.BEGLEITER, schritt = 2, mitFortschritt = false)
+        paparazzi.unsafeUpdateConfig(DeviceConfig.PIXEL_5.copy(screenHeight = 3000))
+        paparazzi.snapshot { Rahmen { begleiter(z, it)() } }
     }
 }

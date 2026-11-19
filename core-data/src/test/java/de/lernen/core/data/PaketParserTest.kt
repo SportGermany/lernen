@@ -115,6 +115,16 @@ class PaketParserTest {
     }
 
     @Test
+    fun `Englisch-Pakete mit Useful phrases`() {
+        val e = ok(TestDaten.ressource("englisch-formal-email.json"))
+        assertEquals(emptyList<Any>(), e.warnungen)
+        assertEquals(4, e.paket.begleiter.first { it.id == "opening" }.phrases.size)
+        val g = ok(TestDaten.ressource("englisch-if-clauses.json"))
+        assertEquals(emptyList<Any>(), g.warnungen)
+        assertEquals(3, g.paket.ueberblick.aufbau.size)
+    }
+
+    @Test
     fun `Fortschritt zählt alle Abhakpunkte`() {
         val p: Paket = PaketParser.liesOderWirf(TestDaten.MINI)
         assertEquals(3, p.punkteGesamt)
