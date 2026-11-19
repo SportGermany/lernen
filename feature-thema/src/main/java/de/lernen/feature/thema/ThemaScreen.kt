@@ -53,7 +53,7 @@ internal val BREIT = 840.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ThemaScreen(onZurueck: () -> Unit, vm: ThemaViewModel = hiltViewModel()) {
+fun ThemaScreen(onZurueck: () -> Unit, onFrage: (schrittId: String?) -> Unit = {}, vm: ThemaViewModel = hiltViewModel()) {
     val z by vm.zustand.collectAsStateWithLifecycle()
     val fehlt by vm.fehlt.collectAsStateWithLifecycle()
     var wach by rememberSaveable { mutableStateOf(false) }
@@ -125,6 +125,7 @@ fun ThemaScreen(onZurueck: () -> Unit, vm: ThemaViewModel = hiltViewModel()) {
                         onNochmal = vm::nochmal,
                         onWortkiste = { wortkiste = true },
                         onFertig = { vm.waehleTab(ThemaTab.UEBEN) },
+                        onFrage = onFrage,
                     )
                     ThemaTab.UEBEN -> UebenTab(
                         zz, breit,

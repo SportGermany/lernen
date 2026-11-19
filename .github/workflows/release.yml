@@ -1,0 +1,47 @@
+# Baut bei einem Tag vX.Y.Z eine signierte APK und veröffentlicht sie als GitHub Release.
+# Benötigte Secrets (Settings → Secrets and variables → Actions):
+#   KEYSTORE_BASE64      – Keystore-Datei, base64-kodiert (base64 -w0 lernen.jks)
+#   KEYSTORE_PASSWORT    – Passwort des Keystores
+#   KEY_ALIAS            – Alias des Schlüssels
+#   KEY_PASSWORT         – Passwort des Schlüssels
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Version prüfen
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          NAME=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
+          if [ "$TAG" != "$NAME" ]; then echo "Tag $TAG passt nicht zu versionName $NAME"; exit 1; fi
+      - name: Tests
+        run: ./gradlew test --no-daemon
+      - name: Keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/lernen.jks"
+      - name: APK bauen
+        env:
+          LERNEN_KEYSTORE: ${{ runner.temp }}/lernen.jks
+          LERNEN_KEYSTORE_PASSWORT: ${{ secrets.KEYSTORE_PASSWORT }}
+          LERNEN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          LERNEN_KEY_PASSWORT: ${{ secrets.KEY_PASSWORT }}
+        run: |
+          ./gradlew assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk "lernen-${GITHUB_REF_NAME#v}.apk"
+      - name: Release veröffentlichen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" "lernen-${GITHUB_REF_NAME#v}.apk" --title "Lernen ${GITHUB_REF_NAME#v}" --generate-notes

@@ -38,6 +38,9 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.lernen.core.data.repo.Uebersicht
+import de.lernen.core.sync.AppUpdate
+import de.lernen.core.sync.UpdateZustand
+import kotlinx.coroutines.launch
 import de.lernen.core.data.repo.UebersichtRepository
 import de.lernen.core.design.komponenten.Balken
 import de.lernen.core.design.komponenten.FachPunkt
@@ -55,8 +58,11 @@ import javax.inject.Inject
 data object StartRoute
 
 @HiltViewModel
-class StartViewModel @Inject constructor(repo: UebersichtRepository) : ViewModel() {
+class StartViewModel @Inject constructor(repo: UebersichtRepository, private val update: AppUpdate) : ViewModel() {
     val uebersicht = repo.uebersicht.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    val updateZustand = update.zustand
+    fun installieren(z: UpdateZustand.Verfuegbar) = viewModelScope.launch { update.installieren(z.neu) }
+    fun ausblenden() = update.ausblenden()
 }
 
 fun NavGraphBuilder.startBildschirm(
@@ -78,6 +84,7 @@ fun StartScreen(
     vm: StartViewModel = hiltViewModel(),
 ) {
     val u by vm.uebersicht.collectAsStateWithLifecycle()
+    val upd by vm.updateZustand.collectAsStateWithLifecycle()
     Column(Modifier.fillMaxSize()) {
         TopAppBar(
             title = { Text("Lernen") },
@@ -85,7 +92,20 @@ fun StartScreen(
             actions = { IconButton(onClick = onEinstellungen) { Icon(Icons.Outlined.Settings, "Einstellungen", tint = Lernen.farben.text2) } },
         )
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-            u?.let { Inhalt(it, onThema, onWiederholen, onFach) }
+            Column(Modifier.widthIn(max = 720.dp).fillMaxWidth()) {
+                (upd as? UpdateZustand.Verfuegbar)?.let { z ->
+                    Karte(Modifier.padding(horizontal = 14.dp).padding(bottom = 10.dp), farbe = Lernen.farben.infoTon, rand = null) {
+                        Text("Neue Version ${z.neu.version}", fontWeight = FontWeight.Medium)
+                        Grau("Die App lädt sie herunter und öffnet den Installer.")
+                        Row(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            androidx.compose.material3.Button(onClick = { vm.installieren(z) }) { Text("Installieren") }
+                            androidx.compose.material3.TextButton(onClick = vm::ausblenden) { Text("Später") }
+                        }
+                    }
+                }
+                if (upd is UpdateZustand.Laedt) Grau("Update wird heruntergeladen …", Modifier.padding(horizontal = 14.dp, vertical = 6.dp))
+                u?.let { Inhalt(it, onThema, onWiederholen, onFach) }
+            }
         }
     }
 }

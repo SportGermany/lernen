@@ -15,6 +15,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -46,6 +47,7 @@ internal fun BegleiterTab(
     onNochmal: (String) -> Unit,
     onWortkiste: () -> Unit,
     onFertig: () -> Unit,
+    onFrage: (String?) -> Unit = {},
 ) {
     val b = z.paket.begleiter
     if (b.isEmpty()) { Grau("Dieses Paket hat keinen Begleiter."); return }
@@ -65,7 +67,7 @@ internal fun BegleiterTab(
         rechts = { Rechts(z, s, breit, onTipp, onAntwort, onNochmal, onWortkiste) },
     )
 
-    Spacer(Modifier.height(8.dp))
+    TextButton(onClick = { onFrage(s.id) }, modifier = Modifier.fillMaxWidth()) { Text("Frage an Claude zu diesem Schritt") }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         if (z.schritt > 0) OutlinedButton(onClick = { onSchritt(z.schritt - 1) }, modifier = Modifier.height(48.dp)) { Text("‹", fontSize = 18.sp) }
         if (naechster != null) Button(onClick = { onSchritt(z.schritt + 1) }, modifier = Modifier.weight(1f).height(48.dp)) {

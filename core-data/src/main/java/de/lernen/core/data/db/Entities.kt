@@ -1,10 +1,13 @@
 package de.lernen.core.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
 /** Ein hinzugefügtes Paket. Das komplette JSON wird gespeichert, damit alles offline funktioniert. */
+@Serializable
 @Entity(tableName = "paket")
 data class PaketEntity(
     @PrimaryKey val id: String,
@@ -18,6 +21,7 @@ data class PaketEntity(
     val herkunft: String,
 )
 
+@Serializable
 @Entity(tableName = "haken", primaryKeys = ["paketId", "schrittId", "index"], indices = [Index("paketId")])
 data class HakenEntity(
     val paketId: String,
@@ -27,6 +31,7 @@ data class HakenEntity(
 )
 
 /** Wie viele Tipps in einem Schritt schon aufgedeckt sind. */
+@Serializable
 @Entity(tableName = "tipp_stand", primaryKeys = ["paketId", "schrittId"])
 data class TippStandEntity(
     val paketId: String,
@@ -35,6 +40,7 @@ data class TippStandEntity(
 )
 
 /** Letzte Antwort auf die Prüffrage eines Schritts. */
+@Serializable
 @Entity(tableName = "pruef_antwort", primaryKeys = ["paketId", "schrittId"])
 data class PruefAntwortEntity(
     val paketId: String,
@@ -44,6 +50,7 @@ data class PruefAntwortEntity(
 )
 
 /** Wo der Schüler im Thema zuletzt war (für "Weitermachen"). */
+@Serializable
 @Entity(tableName = "position")
 data class PositionEntity(
     @PrimaryKey val paketId: String,
@@ -52,7 +59,8 @@ data class PositionEntity(
     val zeit: Long,
 )
 
-/** Ergebnis einer Übungsaufgabe (Meilenstein 3). status: "richtig" | "falsch" | "unsicher" */
+/** Ergebnis einer Übungsaufgabe. status: "richtig" | "falsch" | "unsicher" */
+@Serializable
 @Entity(tableName = "uebung_ergebnis", primaryKeys = ["paketId", "aufgabeId"])
 data class UebungErgebnisEntity(
     val paketId: String,
@@ -62,7 +70,8 @@ data class UebungErgebnisEntity(
     val zeit: Long,
 )
 
-/** Frage an Claude (Meilenstein 4). status: "wartet" | "hochgeladen" | "geloescht" */
+/** Frage an Claude. status: "wartet" | "hochgeladen" | "geloescht" */
+@Serializable
 @Entity(tableName = "frage")
 data class FrageEntity(
     @PrimaryKey val id: String,
@@ -76,4 +85,8 @@ data class FrageEntity(
     val antwortart: String,
     val status: String,
     val pfad: String?,
+    /** FrageKontext als JSON (seit DB-Version 2). */
+    @ColumnInfo(defaultValue = "NULL") val kontextJson: String? = null,
+    /** Letzter Fehler beim Hochladen/Löschen (seit DB-Version 2). */
+    @ColumnInfo(defaultValue = "NULL") val fehler: String? = null,
 )

@@ -48,6 +48,8 @@ class PaketRepository @Inject constructor(
         return p
     }
 
+    suspend fun idsJetzt(): List<String> = pakete.first().map { it.id }
+
     /** Die installierte Formelsammlung (Werkzeug), falls vorhanden. */
     suspend fun formelsammlung(): Paket? = pakete.first().firstOrNull { it.typ == Paket.TYP_FORMELSAMMLUNG }
 

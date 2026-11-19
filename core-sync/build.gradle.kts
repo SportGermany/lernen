@@ -10,7 +10,8 @@ android { namespace = "de.lernen.core.sync" }
 dependencies {
     implementation(project(":core-data"))
     api(libs.okhttp)
-    implementation(libs.work.runtime)
+    api(libs.work.runtime)
+    implementation(libs.androidx.core.ktx)
     implementation(libs.hilt.work)
     ksp(libs.hilt.androidx.compiler)
 

@@ -8,6 +8,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import de.lernen.core.data.db.FortschrittDao
+import de.lernen.core.data.db.FrageDao
+import de.lernen.core.data.db.SicherungDao
 import de.lernen.core.data.db.LernenDatenbank
 import de.lernen.core.data.db.PaketDao
 import de.lernen.core.data.lernplan.KeinLernplan
@@ -27,6 +29,12 @@ object DatenModul {
 
     @Provides
     fun fortschrittDao(db: LernenDatenbank): FortschrittDao = db.fortschrittDao()
+
+    @Provides
+    fun frageDao(db: LernenDatenbank): FrageDao = db.frageDao()
+
+    @Provides
+    fun sicherungDao(db: LernenDatenbank): SicherungDao = db.sicherungDao()
 
     @Provides
     @Singleton

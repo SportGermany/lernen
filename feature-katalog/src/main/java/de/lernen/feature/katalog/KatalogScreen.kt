@@ -63,6 +63,7 @@ import de.lernen.core.design.theme.Lernen
 import de.lernen.core.sync.KatalogRepository
 import de.lernen.core.sync.KatalogZeile
 import de.lernen.core.sync.PaketStatus
+import de.lernen.core.sync.SyncKoordinator
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -92,6 +93,7 @@ data class KatalogUi(
 @HiltViewModel
 class KatalogViewModel @Inject constructor(
     private val repo: KatalogRepository,
+    private val sync: SyncKoordinator,
     faecher: FachRepository,
     einstellungen: EinstellungenRepository,
 ) : ViewModel() {
@@ -103,7 +105,7 @@ class KatalogViewModel @Inject constructor(
         KatalogUi(z, f, e.letzterSync, e.quelle.anzeige, s.laeuft, s.fehler, a)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), KatalogUi())
 
-    fun synchronisieren() = viewModelScope.launch { repo.synchronisiere() }
+    fun synchronisieren() = viewModelScope.launch { sync.abgleichen() }
 
     fun hinzufuegen(e: KatalogEintrag, update: Boolean) = viewModelScope.launch {
         arbeit.value += e.id

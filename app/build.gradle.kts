@@ -14,12 +14,25 @@ android {
         applicationId = "de.lernen.app"
         minSdk = Konfig.MIN_SDK
         targetSdk = Konfig.TARGET_SDK
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 4
+        versionName = "0.4.0"
+    }
+
+    // Signatur für Releases: nur über Umgebungsvariablen (GitHub-Secrets), nie im Repository.
+    val keystore = System.getenv("LERNEN_KEYSTORE")?.let(::file)?.takeIf { it.exists() }
+    signingConfigs {
+        if (keystore != null) create("release") {
+            storeFile = keystore
+            storePassword = System.getenv("LERNEN_KEYSTORE_PASSWORT")
+            keyAlias = System.getenv("LERNEN_KEY_ALIAS")
+            keyPassword = System.getenv("LERNEN_KEY_PASSWORT")
+        }
     }
 
     buildTypes {
         release {
+            // Ohne Keystore (lokal): mit Debug-Schlüssel signieren, damit die APK installierbar ist.
+            signingConfig = if (keystore != null) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -55,6 +68,8 @@ dependencies {
     implementation(project(":feature-einstellungen"))
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.work.runtime)
+    implementation(libs.hilt.work)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)

@@ -26,6 +26,7 @@ import de.lernen.feature.faecher.FaecherRoute
 import de.lernen.feature.faecher.faecherBildschirm
 import de.lernen.feature.fragen.FragenRoute
 import de.lernen.feature.fragen.fragenBildschirm
+import de.lernen.feature.fragen.neueFrage
 import de.lernen.feature.katalog.KatalogRoute
 import de.lernen.feature.katalog.katalogBildschirm
 import de.lernen.feature.start.StartRoute
@@ -86,9 +87,9 @@ fun LernenApp() {
                 onEinstellungen = { nav.navigate(EinstellungenRoute) },
             )
             faecherBildschirm(onThema = { nav.oeffneThema(it) }, onKatalog = { nav.oben(KatalogRoute) })
-            themaBildschirm(onZurueck = { nav.popBackStack() })
+            themaBildschirm(onZurueck = { nav.popBackStack() }, onFrage = { p, s -> nav.neueFrage(p, s) })
             katalogBildschirm(onThema = { nav.oeffneThema(it) })
-            fragenBildschirm()
+            fragenBildschirm(nav, onEinstellungen = { nav.navigate(EinstellungenRoute) })
             werkzeugeBildschirm(onWerkzeug = { nav.oeffneWerkzeug(it) }, onZurueck = { nav.popBackStack() })
             einstellungenBildschirm(BuildConfig.VERSION_NAME, onZurueck = { nav.popBackStack() })
         }
