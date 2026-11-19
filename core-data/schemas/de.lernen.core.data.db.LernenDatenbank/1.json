@@ -1,0 +1,361 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "e1f6e8987cc5083f3cf83a47ba02e40c",
+    "entities": [
+      {
+        "tableName": "paket",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `typ` TEXT NOT NULL, `fach` TEXT NOT NULL, `titel` TEXT NOT NULL, `version` TEXT NOT NULL, `json` TEXT NOT NULL, `hinzugefuegtAm` INTEGER NOT NULL, `herkunft` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "typ",
+            "columnName": "typ",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fach",
+            "columnName": "fach",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "titel",
+            "columnName": "titel",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "version",
+            "columnName": "version",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "json",
+            "columnName": "json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hinzugefuegtAm",
+            "columnName": "hinzugefuegtAm",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "herkunft",
+            "columnName": "herkunft",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "haken",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`paketId` TEXT NOT NULL, `schrittId` TEXT NOT NULL, `index` INTEGER NOT NULL, `zeit` INTEGER NOT NULL, PRIMARY KEY(`paketId`, `schrittId`, `index`))",
+        "fields": [
+          {
+            "fieldPath": "paketId",
+            "columnName": "paketId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "schrittId",
+            "columnName": "schrittId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "index",
+            "columnName": "index",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "zeit",
+            "columnName": "zeit",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "paketId",
+            "schrittId",
+            "index"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_haken_paketId",
+            "unique": false,
+            "columnNames": [
+              "paketId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_haken_paketId` ON `${TABLE_NAME}` (`paketId`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "tipp_stand",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`paketId` TEXT NOT NULL, `schrittId` TEXT NOT NULL, `aufgedeckt` INTEGER NOT NULL, PRIMARY KEY(`paketId`, `schrittId`))",
+        "fields": [
+          {
+            "fieldPath": "paketId",
+            "columnName": "paketId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "schrittId",
+            "columnName": "schrittId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "aufgedeckt",
+            "columnName": "aufgedeckt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "paketId",
+            "schrittId"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "pruef_antwort",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`paketId` TEXT NOT NULL, `schrittId` TEXT NOT NULL, `gewaehlt` INTEGER NOT NULL, `richtig` INTEGER NOT NULL, PRIMARY KEY(`paketId`, `schrittId`))",
+        "fields": [
+          {
+            "fieldPath": "paketId",
+            "columnName": "paketId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "schrittId",
+            "columnName": "schrittId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gewaehlt",
+            "columnName": "gewaehlt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "richtig",
+            "columnName": "richtig",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "paketId",
+            "schrittId"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "position",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`paketId` TEXT NOT NULL, `schrittId` TEXT, `tab` TEXT NOT NULL, `zeit` INTEGER NOT NULL, PRIMARY KEY(`paketId`))",
+        "fields": [
+          {
+            "fieldPath": "paketId",
+            "columnName": "paketId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "schrittId",
+            "columnName": "schrittId",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "tab",
+            "columnName": "tab",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "zeit",
+            "columnName": "zeit",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "paketId"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "uebung_ergebnis",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`paketId` TEXT NOT NULL, `aufgabeId` TEXT NOT NULL, `stufe` TEXT NOT NULL, `status` TEXT NOT NULL, `zeit` INTEGER NOT NULL, PRIMARY KEY(`paketId`, `aufgabeId`))",
+        "fields": [
+          {
+            "fieldPath": "paketId",
+            "columnName": "paketId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "aufgabeId",
+            "columnName": "aufgabeId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stufe",
+            "columnName": "stufe",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "zeit",
+            "columnName": "zeit",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "paketId",
+            "aufgabeId"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "frage",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `erstellt` INTEGER NOT NULL, `fach` TEXT, `paketId` TEXT, `paketTitel` TEXT, `schrittId` TEXT, `schrittTitel` TEXT, `text` TEXT NOT NULL, `antwortart` TEXT NOT NULL, `status` TEXT NOT NULL, `pfad` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "erstellt",
+            "columnName": "erstellt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fach",
+            "columnName": "fach",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "paketId",
+            "columnName": "paketId",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "paketTitel",
+            "columnName": "paketTitel",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "schrittId",
+            "columnName": "schrittId",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "schrittTitel",
+            "columnName": "schrittTitel",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "text",
+            "columnName": "text",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "antwortart",
+            "columnName": "antwortart",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pfad",
+            "columnName": "pfad",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e1f6e8987cc5083f3cf83a47ba02e40c')"
+    ]
+  }
+}

@@ -1,0 +1,78 @@
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jetbrains.kotlin.plugin.serialization")
+    id("lernen.android.hilt")
+}
+
+android {
+    namespace = "de.lernen.app"
+    compileSdk = Konfig.COMPILE_SDK
+
+    defaultConfig {
+        applicationId = "de.lernen.app"
+        minSdk = Konfig.MIN_SDK
+        targetSdk = Konfig.TARGET_SDK
+        versionCode = 1
+        versionName = "0.1.0"
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
+    compileOptions {
+        sourceCompatibility = Konfig.JAVA
+        targetCompatibility = Konfig.JAVA
+    }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+}
+
+kotlin {
+    compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) }
+}
+
+dependencies {
+    implementation(project(":core-design"))
+    implementation(project(":core-data"))
+    implementation(project(":core-sync"))
+    implementation(project(":feature-start"))
+    implementation(project(":feature-faecher"))
+    implementation(project(":feature-thema"))
+    implementation(project(":feature-katalog"))
+    implementation(project(":feature-fragen"))
+    implementation(project(":feature-werkzeuge"))
+    implementation(project(":feature-einstellungen"))
+
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.hilt.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material3.navsuite)
+    implementation(libs.compose.icons.core)
+    debugImplementation(libs.compose.ui.tooling)
+
+    // Rauchtest der ganzen App auf der JVM (Robolectric), weil kein Emulator nötig sein soll
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.test.junit)
+    testImplementation(platform(libs.compose.bom))
+    testImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
+}

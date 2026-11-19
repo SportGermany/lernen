@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Aufgeschlagenes Heft mit Haken: schlicht, eine Farbe -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#00000000" android:strokeColor="#FFFFFF" android:strokeWidth="4"
+        android:strokeLineJoin="round"
+        android:pathData="M30,38 L52,34 L52,74 L30,78 Z M78,38 L56,34 L56,74 L78,78 Z" />
+    <path android:fillColor="#00000000" android:strokeColor="#F0937A" android:strokeWidth="5"
+        android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M60,55 L66,61 L76,48" />
+</vector>
