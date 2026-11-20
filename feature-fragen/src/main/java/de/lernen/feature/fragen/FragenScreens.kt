@@ -68,6 +68,7 @@ import de.lernen.core.design.komponenten.Ueberschrift
 import de.lernen.core.design.komponenten.ZeileZwischen
 import de.lernen.core.design.theme.Lernen
 import de.lernen.core.sync.FrageEintrag
+import de.lernen.core.sync.GitHubApi
 import de.lernen.core.sync.FrageStatus
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -78,13 +79,14 @@ import java.util.Locale
 @Serializable data class FrageNeuRoute(val paketId: String? = null, val schrittId: String? = null)
 @Serializable data class FrageRoute(val id: String)
 
-const val TOKEN_SEITE = "https://github.com/settings/personal-access-tokens/new"
 private val DATUM = DateTimeFormatter.ofPattern("d.M.yyyy, HH:mm", Locale.GERMANY)
 
 fun NavController.neueFrage(paketId: String? = null, schrittId: String? = null) = navigate(FrageNeuRoute(paketId, schrittId))
 
 fun NavGraphBuilder.fragenBildschirm(nav: NavController, onEinstellungen: () -> Unit) {
-    composable<FragenRoute> { FragenScreen(onNeu = { nav.neueFrage() }, onFrage = { nav.navigate(FrageRoute(it)) }, onEinstellungen = onEinstellungen) }
+    composable<FragenRoute> {
+        FragenScreen(onNeu = { nav.neueFrage() }, onFrage = { nav.navigate(FrageRoute(it)) }, onEinstellungen = onEinstellungen, onDiagnose = { nav.navigate(DiagnoseRoute) })
+    }
     composable<FrageNeuRoute> {
         FrageNeuScreen(
             onZurueck = { nav.popBackStack() },
@@ -92,7 +94,8 @@ fun NavGraphBuilder.fragenBildschirm(nav: NavController, onEinstellungen: () -> 
             onEinstellungen = onEinstellungen,
         )
     }
-    composable<FrageRoute> { FrageDetailScreen(onZurueck = { nav.popBackStack() }) }
+    composable<FrageRoute> { FrageDetailScreen(onZurueck = { nav.popBackStack() }, onDiagnose = { nav.navigate(DiagnoseRoute) }) }
+    composable<DiagnoseRoute> { DiagnoseScreen(onZurueck = { nav.popBackStack() }) }
 }
 
 @Composable
@@ -109,16 +112,16 @@ internal fun TokenAnleitung(onEinstellungen: () -> Unit) {
         KartenTitel("Einmal einrichten")
         Text(
             "Damit die App Fragen hochladen darf, braucht sie einen GitHub-Token:\n" +
-                "1. Auf GitHub einen „Fine-grained Personal Access Token“ erstellen.\n" +
-                "2. Repository access: nur „lernen-pakete“.\n" +
-                "3. Permissions → Contents: „Read and write“.\n" +
-                "4. Ein Ablaufdatum wählen (z. B. 90 Tage).\n" +
-                "5. Den Token in den Einstellungen unter „GitHub“ einfügen und „Verbindung testen“.",
+                "1. „Token-Seite öffnen“ tippen (angemeldet als SportGermany). Name, Ablauf und „Contents: Read and write“ sind schon vorausgefüllt.\n" +
+                "2. Bei „Repository access“ unbedingt „Only select repositories“ wählen und „lernen-pakete“ auswählen. " +
+                "Die Voreinstellung „Public repositories“ darf nur lesen, dann kommt Fehler 403.\n" +
+                "3. Prüfen: Permissions → Repository permissions → Contents: „Read and write“.\n" +
+                "4. „Generate token“, den Token kopieren und in den Einstellungen unter „GitHub“ einfügen. Danach die Fehlerdiagnose starten.",
             style = MaterialTheme.typography.bodyMedium,
         )
         Spacer(Modifier.height(10.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { uri.openUri(TOKEN_SEITE) }) { Text("Token-Seite öffnen") }
+            OutlinedButton(onClick = { uri.openUri(GitHubApi.tokenSeite(de.lernen.core.data.model.PaketQuelle())) }) { Text("Token-Seite öffnen") }
             Button(onClick = onEinstellungen) { Text("Einstellungen") }
         }
     }
@@ -142,7 +145,7 @@ private fun Seite(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun FragenScreen(onNeu: () -> Unit, onFrage: (String) -> Unit, onEinstellungen: () -> Unit, vm: FragenViewModel = hiltViewModel()) {
+fun FragenScreen(onNeu: () -> Unit, onFrage: (String) -> Unit, onEinstellungen: () -> Unit, onDiagnose: () -> Unit = {}, vm: FragenViewModel = hiltViewModel()) {
     val fragen by vm.fragen.collectAsStateWithLifecycle()
     val hatToken by vm.hatToken.collectAsStateWithLifecycle()
     Column(Modifier.fillMaxSize()) {
@@ -160,6 +163,12 @@ fun FragenScreen(onNeu: () -> Unit, onFrage: (String) -> Unit, onEinstellungen: 
             }
             Spacer(Modifier.height(10.dp))
             if (!hatToken) TokenAnleitung(onEinstellungen)
+            else if (fragen.any { it.fehler != null && it.status == FrageStatus.WARTET }) {
+                HinweisBox(BoxArt.SCHLECHT, "Hochladen klappt nicht") {
+                    Text("Starte die Fehlerdiagnose. Sie zeigt die Ursache und wie du sie behebst.", style = MaterialTheme.typography.bodyMedium)
+                    Button(onClick = onDiagnose, modifier = Modifier.padding(top = 6.dp)) { Text("Fehlerdiagnose") }
+                }
+            } else TextButton(onClick = onDiagnose) { Text("Fehlerdiagnose") }
             if (fragen.isNotEmpty()) {
                 Ueberschrift("Deine Fragen")
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -243,7 +252,7 @@ private fun KontextKarte(k: FrageKontext) {
 }
 
 @Composable
-fun FrageDetailScreen(onZurueck: () -> Unit, vm: FrageDetailViewModel = hiltViewModel()) {
+fun FrageDetailScreen(onZurueck: () -> Unit, onDiagnose: () -> Unit = {}, vm: FrageDetailViewModel = hiltViewModel()) {
     val e by vm.frage.collectAsStateWithLifecycle()
     val clip = LocalClipboardManager.current
     val snackbar = remember { SnackbarHostState() }
@@ -263,7 +272,10 @@ fun FrageDetailScreen(onZurueck: () -> Unit, vm: FrageDetailViewModel = hiltView
                         }
                         ee.fehler?.let {
                             Text(it, color = Lernen.farben.schlecht, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
-                            TextButton(onClick = vm::nochmal) { Text("Nochmal versuchen") }
+                            Row {
+                                TextButton(onClick = vm::nochmal) { Text("Nochmal versuchen") }
+                                TextButton(onClick = onDiagnose) { Text("Fehlerdiagnose") }
+                            }
                         }
                     }
                     FrageStatus.HOCHGELADEN -> {

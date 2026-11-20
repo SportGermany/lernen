@@ -10,7 +10,8 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
-class NetzFehler(val code: Int, meldung: String) : IOException(meldung)
+/** HTTP-Fehler. [details]: Meldung von GitHub und benötigte Berechtigung, falls vorhanden. */
+class NetzFehler(val code: Int, meldung: String, val details: String? = null) : IOException(meldung)
 
 /** Gemeinsamer HTTP-Client. Lesen ohne Token. */
 @Singleton
@@ -33,10 +34,11 @@ class Netz @Inject constructor() {
 /** Verständliche Fehlermeldung für die Oberfläche. */
 fun Throwable.alsMeldung(): String = when (this) {
     is NetzFehler -> when (code) {
-        404 -> "Nicht gefunden. Stimmt die Paket-Quelle in den Einstellungen?"
-        401, 403 -> "Kein Zugriff (HTTP $code)."
+        404 -> "Nicht gefunden (HTTP 404)."
+        401 -> "Token ungültig oder abgelaufen (HTTP 401)."
+        403 -> "Kein Schreibzugriff (HTTP 403). Einstellungen → GitHub → Fehlerdiagnose zeigt die Ursache."
         else -> "Server-Fehler (HTTP $code)."
-    }
+    } + (details?.let { " – $it" } ?: "")
     is java.net.UnknownHostException, is java.net.ConnectException, is java.net.SocketTimeoutException -> "Keine Verbindung zum Internet."
     is IllegalArgumentException -> message ?: "Ungültige Daten."
     else -> message ?: "Unbekannter Fehler."

@@ -125,18 +125,13 @@ class EinstellungenViewModel @Inject constructor(
         hintergrund.erinnerungPlanen(an, minuten)
     }
 
-    fun tokenSpeichern(t: String) = viewModelScope.launch {
+    fun tokenSpeichern(t: String) {
         token.speichere(t)
-        meldungen.send("Token verschlüsselt gespeichert.")
         hintergrund.fragenHochladen()
     }
 
     fun tokenLoeschen() = viewModelScope.launch { token.loesche(); meldungen.send("Token gelöscht.") }
 
-    fun verbindungTesten() = viewModelScope.launch {
-        val t = token.lies() ?: return@launch meldungen.send("Kein Token gespeichert.")
-        meldungen.send(github.testen(einstellungen.value.quelle, t).second)
-    }
 
     suspend fun exportText(): String = sicherung.exportieren()
 
@@ -157,13 +152,13 @@ class EinstellungenViewModel @Inject constructor(
     fun melde(t: String) = viewModelScope.launch { meldungen.send(t) }
 }
 
-fun NavGraphBuilder.einstellungenBildschirm(version: String, onZurueck: () -> Unit) {
-    composable<EinstellungenRoute> { EinstellungenScreen(version, onZurueck) }
+fun NavGraphBuilder.einstellungenBildschirm(version: String, onZurueck: () -> Unit, onDiagnose: () -> Unit) {
+    composable<EinstellungenRoute> { EinstellungenScreen(version, onZurueck, onDiagnose) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EinstellungenScreen(version: String, onZurueck: () -> Unit, vm: EinstellungenViewModel = hiltViewModel()) {
+fun EinstellungenScreen(version: String, onZurueck: () -> Unit, onDiagnose: () -> Unit = {}, vm: EinstellungenViewModel = hiltViewModel()) {
     val e by vm.einstellungen.collectAsStateWithLifecycle()
     val faecher by vm.faecher.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
@@ -193,7 +188,7 @@ fun EinstellungenScreen(version: String, onZurueck: () -> Unit, vm: Einstellunge
 
                 Abschnitt("GitHub")
                 QuelleZeile(e.quelle, vm::quelle)
-                TokenAbschnitt(vm)
+                TokenAbschnitt(vm, onDiagnose)
 
                 Abschnitt("Daten")
                 DatenAbschnitt(vm)
@@ -250,8 +245,9 @@ private fun ErinnerungAbschnitt(e: Einstellungen, onAendern: (Boolean, Int) -> U
 }
 
 @Composable
-private fun TokenAbschnitt(vm: EinstellungenViewModel) {
+private fun TokenAbschnitt(vm: EinstellungenViewModel, onDiagnose: () -> Unit) {
     val hat by vm.hatToken.collectAsStateWithLifecycle()
+    val e by vm.einstellungen.collectAsStateWithLifecycle()
     var eingabe by remember { mutableStateOf("") }
     var loeschen by remember { mutableStateOf(false) }
     val uri = LocalUriHandler.current
@@ -261,25 +257,23 @@ private fun TokenAbschnitt(vm: EinstellungenViewModel) {
             Grau(if (hat) "gespeichert (verschlüsselt)" else "nicht eingerichtet")
         }
         Grau(
-            "Fine-grained Token: nur Repository „lernen-pakete“, Contents „Read and write“, mit Ablaufdatum. " +
-                "Die App schreibt und löscht nur im Ordner fragen/offen/.",
+            "Fine-grained Token, angemeldet als ${e.quelle.owner}: „Repository access“ → Only select repositories → ${e.quelle.repo}; " +
+                "„Contents“ → Read and write. Die App schreibt und löscht nur im Ordner fragen/offen/.",
             Modifier.padding(top = 4.dp),
         )
-        if (!hat) {
-            OutlinedTextField(
-                value = eingabe, onValueChange = { eingabe = it.trim() }, singleLine = true, label = { Text("Token einfügen") },
-                visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            )
-            Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { vm.tokenSpeichern(eingabe); eingabe = "" }, enabled = eingabe.length >= 20) { Text("Speichern") }
-                OutlinedButton(onClick = { uri.openUri("https://github.com/settings/personal-access-tokens/new") }) { Text("Token erstellen") }
-            }
-        } else {
-            Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = vm::verbindungTesten) { Text("Verbindung testen") }
-                OutlinedButton(onClick = { loeschen = true }) { Text("Token löschen") }
-            }
+        OutlinedTextField(
+            value = eingabe, onValueChange = { eingabe = it.trim() }, singleLine = true,
+            label = { Text(if (hat) "Neuen Token einfügen (ersetzt den alten)" else "Token einfügen") },
+            visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        )
+        Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = { vm.tokenSpeichern(eingabe); eingabe = ""; onDiagnose() }, enabled = eingabe.length >= 20) { Text("Speichern + prüfen") }
+            OutlinedButton(onClick = { uri.openUri(GitHubApi.tokenSeite(e.quelle)) }) { Text("Token erstellen") }
+        }
+        Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = onDiagnose) { Text("Fehlerdiagnose") }
+            if (hat) TextButton(onClick = { loeschen = true }) { Text("Token löschen") }
         }
     }
     HorizontalDivider(color = MaterialTheme.colorScheme.outline)

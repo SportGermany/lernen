@@ -55,12 +55,56 @@ class GitHubApiTest {
         assertTrue(del.body.readUtf8().contains("\"sha\":\"abc123\""))
     }
 
-    @Test fun `Verbindung testen erkennt fehlende Schreibrechte`() = runTest {
-        server.enqueue(MockResponse().setBody("""{"permissions":{"push":false}}"""))
-        server.enqueue(MockResponse().setBody("""{"permissions":{"push":true}}"""))
-        server.enqueue(MockResponse().setResponseCode(401))
-        assertEquals(false, api.testen(q, "t").first)
-        assertEquals(true, api.testen(q, "t").first)
-        assertTrue(api.testen(q, "t").second.contains("ungültig"))
+    private val tok = "github_pat_11ABCDEFG0123456789_abcdefghijklmnopqrstuvwxyz"
+
+    @Test fun `Diagnose erkennt fehlendes Schreibrecht beim Fine-grained Token`() = runTest {
+        server.enqueue(MockResponse().setBody("""{"login":"SportGermany"}"""))
+        server.enqueue(MockResponse().setBody("""{"name":"lernen-pakete"}"""))
+        server.enqueue(MockResponse().setBody("""{"name":"main"}"""))
+        server.enqueue(MockResponse().setResponseCode(403).setHeader("X-Accepted-GitHub-Permissions", "contents=write")
+            .setBody("""{"message":"Resource not accessible by personal access token"}"""))
+        val d = api.diagnose(q, tok, "1.0.1")
+        assertEquals(false, d.ok)
+        assertTrue(d.loesung, d.loesung.contains("Contents") && d.loesung.contains("Read and write"))
+        assertTrue(d.bericht.contains("HTTP 403"))
+        assertTrue(d.bericht.contains("contents=write"))
+        assertTrue("Token darf nie im Bericht stehen", !d.bericht.contains(tok))
+    }
+
+    @Test fun `Diagnose erkennt Token eines anderen Kontos`() = runTest {
+        server.enqueue(MockResponse().setBody("""{"login":"jemand-anderes"}"""))
+        val d = api.diagnose(q, tok)
+        assertEquals(false, d.ok)
+        assertTrue(d.loesung.contains("SportGermany"))
+    }
+
+    @Test fun `Diagnose erkennt abgelaufenen Token und falsches Format`() = runTest {
+        server.enqueue(MockResponse().setResponseCode(401).setBody("""{"message":"Bad credentials"}"""))
+        assertTrue(api.diagnose(q, tok).loesung.contains("Neuen Token"))
+        assertTrue(api.diagnose(q, "abc").loesung.contains("neu kopieren"))
+        assertEquals(1, server.requestCount)
+    }
+
+    @Test fun `Diagnose erfolgreich schreibt und loescht eine Testdatei`() = runTest {
+        server.enqueue(MockResponse().setBody("""{"login":"SportGermany"}"""))
+        server.enqueue(MockResponse().setBody("{}"))
+        server.enqueue(MockResponse().setBody("{}"))
+        server.enqueue(MockResponse().setResponseCode(201).setBody("{}"))
+        server.enqueue(MockResponse().setBody("""{"sha":"s1"}"""))
+        server.enqueue(MockResponse().setBody("{}"))
+        val d = api.diagnose(q, tok)
+        assertTrue(d.bericht, d.ok)
+        repeat(3) { server.takeRequest() }
+        val put = server.takeRequest()
+        assertEquals("PUT", put.method)
+        assertTrue(put.path!!.matches(Regex("/repos/SportGermany/lernen-pakete/contents/fragen/offen/\\d{4}-\\d{2}-\\d{2}-\\d{4}-test\\.md")))
+        server.takeRequest()
+        assertEquals("DELETE", server.takeRequest().method)
+    }
+
+    @Test fun `Fehlermeldung beim Hochladen enthaelt GitHub-Meldung`() = runTest {
+        server.enqueue(MockResponse().setResponseCode(403).setBody("""{"message":"Resource not accessible by personal access token"}"""))
+        val e = runCatching { api.anlegen(q, tok, pfad, "x", "x") }.exceptionOrNull() as NetzFehler
+        assertTrue(e.alsMeldung().contains("Resource not accessible"))
     }
 }
