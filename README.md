@@ -27,7 +27,7 @@ Sie liest Schulschreibweise (Komma, ·, :, ², √, π, weggelassene Malpunkte) 
 1. Keystore erzeugen (einmalig, gut aufbewahren):
    `keytool -genkeypair -v -keystore lernen.jks -alias lernen -keyalg RSA -keysize 2048 -validity 10000`
 2. Im Repo unter Settings → Secrets → Actions anlegen: `KEYSTORE_BASE64` (`base64 -w0 lernen.jks`), `KEYSTORE_PASSWORT`, `KEY_ALIAS`, `KEY_PASSWORT`.
-3. Tag pushen, der zu `versionName` passt: `git tag v0.6.0 && git push origin v0.6.0`.
+3. Auf GitHub: Actions → Release → „Run workflow“ (oder einen Tag `vX.Y.Z` pushen, der zu `versionName` passt).
    Die Action baut die signierte APK und legt die Release an. Die App findet sie dann über „Nach Update suchen“.
 
 Hinweis: Eine mit dem Debug-Schlüssel signierte APK lässt sich nicht durch eine Release-APK ersetzen (anderer Schlüssel). Beim Wechsel einmal deinstallieren; vorher die Datensicherung exportieren.

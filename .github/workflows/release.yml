@@ -1,14 +1,13 @@
-# Baut bei einem Tag vX.Y.Z eine signierte APK und veröffentlicht sie als GitHub Release.
+# Baut eine signierte APK und veröffentlicht sie als GitHub Release.
+# Start: entweder Tag vX.Y.Z pushen oder unter Actions → Release → „Run workflow“ (nimmt versionName aus app/build.gradle.kts).
 # Benötigte Secrets (Settings → Secrets and variables → Actions):
-#   KEYSTORE_BASE64      – Keystore-Datei, base64-kodiert (base64 -w0 lernen.jks)
-#   KEYSTORE_PASSWORT    – Passwort des Keystores
-#   KEY_ALIAS            – Alias des Schlüssels
-#   KEY_PASSWORT         – Passwort des Schlüssels
+#   KEYSTORE_BASE64, KEYSTORE_PASSWORT, KEY_ALIAS, KEY_PASSWORT
 name: Release
 
 on:
   push:
     tags: ["v*.*.*"]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -23,11 +22,27 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
-      - name: Version prüfen
+      - name: Secrets vorhanden?
+        env:
+          K: ${{ secrets.KEYSTORE_BASE64 }}
+          P: ${{ secrets.KEYSTORE_PASSWORT }}
+          A: ${{ secrets.KEY_ALIAS }}
+          KP: ${{ secrets.KEY_PASSWORT }}
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
+          for n in K P A KP; do
+            if [ -z "${!n}" ]; then echo "::error::Secret fehlt. Bitte KEYSTORE_BASE64, KEYSTORE_PASSWORT, KEY_ALIAS, KEY_PASSWORT anlegen."; exit 1; fi
+          done
+      - name: Version bestimmen
+        run: |
           NAME=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
-          if [ "$TAG" != "$NAME" ]; then echo "Tag $TAG passt nicht zu versionName $NAME"; exit 1; fi
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            TAG="${GITHUB_REF_NAME}"
+            if [ "${TAG#v}" != "$NAME" ]; then echo "::error::Tag $TAG passt nicht zu versionName $NAME"; exit 1; fi
+          else
+            TAG="v$NAME"
+          fi
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "VERSION=$NAME" >> "$GITHUB_ENV"
       - name: Tests
         run: ./gradlew test --no-daemon
       - name: Keystore
@@ -40,8 +55,8 @@ jobs:
           LERNEN_KEY_PASSWORT: ${{ secrets.KEY_PASSWORT }}
         run: |
           ./gradlew assembleRelease --no-daemon
-          cp app/build/outputs/apk/release/app-release.apk "lernen-${GITHUB_REF_NAME#v}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "lernen-${VERSION}.apk"
       - name: Release veröffentlichen
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" "lernen-${GITHUB_REF_NAME#v}.apk" --title "Lernen ${GITHUB_REF_NAME#v}" --generate-notes
+        run: gh release create "$TAG" "lernen-${VERSION}.apk" --target "$GITHUB_SHA" --title "Lernen ${VERSION}" --generate-notes
