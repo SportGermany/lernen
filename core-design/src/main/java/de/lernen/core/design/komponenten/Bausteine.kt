@@ -218,7 +218,7 @@ fun VorherNachher(vorher: String, nachher: String, vorherLabel: String, nachherL
 /** "vorher" ist reiner Text (kein HTML) – spitze Klammern daher entschärfen. */
 private fun escape(t: String) = t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-/** Platzhalter für Bereiche, die in einem späteren Meilenstein kommen. */
+/** Einfache Hinweiskarte mit Titel und Text. */
 @Composable
 fun KommtSpaeter(titel: String, text: String, modifier: Modifier = Modifier) {
     Karte(modifier) {

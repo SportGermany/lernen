@@ -22,4 +22,11 @@ class HintergrundTest {
         assertEquals("https://github.com/a.apk", r.apkUrl)
         assertNull(AppUpdate.liesRelease("""{"tag_name":"v1.0.0","assets":[]}"""))
     }
+
+    @Test fun `Versionsdatei im Repo lesen`() {
+        val v = AppUpdate.liesVersionsdatei("""{"version":"1.0.0","apk":"update/lernen-1.0.0.apk","notizen":"Erste Version"}""")!!
+        assertEquals("1.0.0", v.version)
+        assertEquals("https://raw.githubusercontent.com/SportGermany/lernen/main/update/lernen-1.0.0.apk", v.apkUrl)
+        assertNull(AppUpdate.liesVersionsdatei("""{"version":"1.0.0"}"""))
+    }
 }

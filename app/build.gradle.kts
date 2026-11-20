@@ -14,8 +14,8 @@ android {
         applicationId = "de.lernen.app"
         minSdk = Konfig.MIN_SDK
         targetSdk = Konfig.TARGET_SDK
-        versionCode = 6
-        versionName = "0.6.0"
+        versionCode = 100
+        versionName = "1.0.0"
     }
 
     // Signatur für Releases: nur über Umgebungsvariablen (GitHub-Secrets), nie im Repository.
@@ -33,8 +33,9 @@ android {
         release {
             // Ohne Keystore (lokal): mit Debug-Schlüssel signieren, damit die APK installierbar ist.
             signingConfig = if (keystore != null) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // Bewusst ohne R8-Verkleinerung: etwas größere APK, dafür kein Risiko durch entfernte Klassen
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

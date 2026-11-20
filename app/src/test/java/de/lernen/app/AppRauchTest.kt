@@ -1,6 +1,5 @@
 package de.lernen.app
 
-import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -10,7 +9,6 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.printToString
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
@@ -57,8 +55,7 @@ class AppRauchTest {
         warteAuf("1/5")
 
         // Merkzettel
-        // Hinweis: Unter Robolectric kommt hier ein simulierter Fingertipp nicht an, daher die Klick-Aktion direkt.
-        compose.onNodeWithText("Merkzettel").performSemanticsAction(SemanticsActions.OnClick)
+        compose.onNodeWithText("Merkzettel").performClick()
         warteAuf("Einen einzigen Moment")
 
         // Zurück zum Start: jetzt „Weitermachen“ mit gespeichertem Haken
@@ -66,9 +63,9 @@ class AppRauchTest {
         warteAuf("Weitermachen")
         warteAuf("1 von 42 abgehakt")
 
-        // Fächer: Mathe hat noch keine Themen
+        // Fächer: alle mitgelieferten Themen sind da
         compose.onAllNodes(hasText("Fächer")).onFirst().performClick()
-        warteAuf("Im Katalog hinzufügen")
+        warteAuf("Gleichungssysteme")
         compose.onAllNodesWithText("Schilderung", substring = true).onFirst().assertIsDisplayed()
     }
 }

@@ -4,16 +4,12 @@ Begleit-App für Schulaufgaben (Realschule Bayern, 9./10. Klasse). Der Schüler 
 
 Native Android-App: Kotlin, Jetpack Compose, Material 3. minSdk 26, targetSdk 35.
 
-## Stand
+## Stand: Version 1.0.0
 
-| Meilenstein | Inhalt | Stand |
-|---|---|---|
-| 1 | Gerüst, Design, Navigation, Room, Paket-Parser + Schema, Deutsch offline (Überblick, Begleiter, Merkzettel), Bildschirm anlassen, Tablet zweispaltig | fertig |
-| 2 | `lernen-pakete`, Sync, Katalog (Hinzufügen / Entfernen / Update), Fächer-Einstellungen | fertig |
-| 3 | Üben (alle Übungstypen), Wiederholen, Wortkiste, Korrekturzeichen | fertig |
-| 4 | Fragen an Claude, Token, Auto-Löschen, Erinnerung, Datensicherung, App-Update, Release-Workflow | fertig (erste Release: siehe unten) |
-| 5 | Rechen-Engine, Mathe-Tastatur, Mitrechnen, Einheiten, Taschenrechner, Umrechner, Plotter, Formelsammlung | fertig |
-| 6 | Englisch: Useful phrases, Grammatik als Rezept, Beispielpakete | fertig |
+Alle sechs Meilensteine aus dem Auftrag sind umgesetzt: Deutsch (Begleiter, Arbeitsheft-Modus, Üben, Wortkiste, Korrekturzeichen),
+Mathe und Physik (Mitrechnen, Rechen- und Einheiten-Engine, Taschenrechner, Umrechner, Plotter, Formelsammlung),
+Englisch (Useful phrases, Grammatik-Rezept), Katalog und Sync, Fragen an Claude, Erinnerung, Datensicherung und App-Update.
+Alle Pakete aus `lernen-pakete` sind auch in der App mitgeliefert und funktionieren ab dem ersten Start offline.
 
 ### Rechen-Engine
 `core-math` ist eine eigene, schlanke Engine statt einer CAS-Bibliothek (Symja wäre sehr groß, und ob es auf Android läuft, ist unsicher).
@@ -22,15 +18,16 @@ Sie liest Schulschreibweise (Komma, ·, :, ², √, π, weggelassene Malpunkte) 
 - Gleichungen: Umformung (f₁ = c·f₂) oder gleiche Lösungsmenge (meldet „Lösung verloren/dazu“),
 - Gleichungssysteme: exakt gelöst (Gauß), jeder Schritt muss zur Lösung passen.
 
-## Erste Release
+## Neue Version veröffentlichen
 
-1. Keystore erzeugen (einmalig, gut aufbewahren):
-   `keytool -genkeypair -v -keystore lernen.jks -alias lernen -keyalg RSA -keysize 2048 -validity 10000`
-2. Im Repo unter Settings → Secrets → Actions anlegen: `KEYSTORE_BASE64` (`base64 -w0 lernen.jks`), `KEYSTORE_PASSWORT`, `KEY_ALIAS`, `KEY_PASSWORT`.
-3. Auf GitHub: Actions → Release → „Run workflow“ (oder einen Tag `vX.Y.Z` pushen, der zu `versionName` passt).
-   Die Action baut die signierte APK und legt die Release an. Die App findet sie dann über „Nach Update suchen“.
+Die App sucht Updates in `update/version.json` dieses Repos (Branch `main`). Dafür sind keine GitHub-Einstellungen nötig.
 
-Hinweis: Eine mit dem Debug-Schlüssel signierte APK lässt sich nicht durch eine Release-APK ersetzen (anderer Schlüssel). Beim Wechsel einmal deinstallieren; vorher die Datensicherung exportieren.
+1. `versionName` und `versionCode` in `app/build.gradle.kts` erhöhen.
+2. `LERNEN_KEYSTORE=/pfad/lernen.jks LERNEN_KEYSTORE_PASSWORT=… werkzeuge/veroeffentlichen.sh "Was ist neu"`
+3. `update/` committen und auf `main` pushen. Die App zeigt „Neue Version“ und installiert sie.
+
+Der Schlüssel `lernen.jks` und sein Passwort liegen **nicht** im Repo. Ohne sie lassen sich keine Updates bauen.
+Optional geht es auch über GitHub Releases (Workflow `release.yml`, braucht vier Secrets); die App prüft beide Wege.
 
 ## Module
 

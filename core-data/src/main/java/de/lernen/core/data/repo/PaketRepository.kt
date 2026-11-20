@@ -66,8 +66,8 @@ class PaketRepository @Inject constructor(
     }
 
     /**
-     * Meilenstein 1: Beim ersten Start die mitgelieferten Startpakete aus den Assets übernehmen.
-     * Ab Meilenstein 2 kommen Pakete aus dem Katalog.
+     * Beim ersten Start alle mitgelieferten Pakete übernehmen (alle Fächer + Formelsammlung, offline).
+     * Alles Weitere kommt aus dem Katalog.
      */
     suspend fun startpaketeEinrichten() {
         val ersterStart = paketDao.anzahl() == 0

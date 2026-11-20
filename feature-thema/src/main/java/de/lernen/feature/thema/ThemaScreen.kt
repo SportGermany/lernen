@@ -18,9 +18,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -43,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.lernen.core.design.komponenten.Segmente
 import de.lernen.core.design.komponenten.Symbole
 import de.lernen.core.design.komponenten.WortkisteSheet
 import de.lernen.core.design.theme.Lernen
@@ -110,15 +108,10 @@ fun ThemaScreen(
             Column(
                 Modifier.widthIn(max = 1100.dp).fillMaxWidth().verticalScroll(scroll).padding(horizontal = 14.dp).padding(bottom = 24.dp)
             ) {
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
-                    ThemaTab.entries.forEachIndexed { i, t ->
-                        SegmentedButton(
-                            selected = zz.tab == t, onClick = { vm.waehleTab(t) },
-                            shape = SegmentedButtonDefaults.itemShape(i, ThemaTab.entries.size),
-                            icon = {},
-                        ) { Text(t.titel, fontSize = 13.sp, maxLines = 1) }
-                    }
-                }
+                Segmente(
+                    ThemaTab.entries.map { it.titel }, ThemaTab.entries.indexOf(zz.tab),
+                    onWahl = { vm.waehleTab(ThemaTab.entries[it]) }, modifier = Modifier.padding(bottom = 12.dp),
+                )
                 when (zz.tab) {
                     ThemaTab.UEBERBLICK -> UeberblickTab(zz, breit, onSchritt = vm::waehleSchritt, onStart = { vm.waehleTab(ThemaTab.BEGLEITER) })
                     ThemaTab.BEGLEITER -> BegleiterTab(

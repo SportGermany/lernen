@@ -35,7 +35,11 @@ sealed interface UpdateZustand {
     data object Aktuell : UpdateZustand
 }
 
-/** App-Update über GitHub Releases des öffentlichen App-Repos (ohne Token). */
+/**
+ * App-Update ohne Token und ohne GitHub-Einstellungen:
+ * 1. update/version.json im öffentlichen App-Repo (main) – wird beim Veröffentlichen mit der APK abgelegt.
+ * 2. Ersatzweise die neueste GitHub-Release.
+ */
 @Singleton
 class AppUpdate @Inject constructor(
     @ApplicationContext private val ctx: Context,
@@ -54,15 +58,16 @@ class AppUpdate @Inject constructor(
 
     suspend fun pruefen(aktuelleVersion: String, still: Boolean = false) {
         runCatching {
-            val text = netz.text("https://api.github.com/repos/$OWNER/$REPO/releases/latest")
+            val neu = runCatching { liesVersionsdatei(netz.text(RAW + "update/version.json")) }.getOrNull()
+                ?: liesRelease(netz.text("https://api.github.com/repos/$OWNER/$REPO/releases/latest"))
             einstellungen.setzeUpdatePruefung(System.currentTimeMillis())
-            liesRelease(text)
+            neu
         }.onSuccess { neu ->
             _zustand.value = if (neu != null && Versionen.istNeuer(neu.version, aktuelleVersion)) UpdateZustand.Verfuegbar(neu)
             else if (still) UpdateZustand.Nichts else UpdateZustand.Aktuell
         }.onFailure {
             if (!still) _zustand.value = UpdateZustand.Fehler(
-                if (it is NetzFehler && it.code == 404) "Noch keine Release veröffentlicht." else it.alsMeldung()
+                if (it is NetzFehler && it.code == 404) "Du hast die neueste Version." else it.alsMeldung()
             )
         }
     }
@@ -113,7 +118,17 @@ class AppUpdate @Inject constructor(
     companion object {
         const val OWNER = "SportGermany"
         const val REPO = "lernen"
+        private const val RAW = "https://raw.githubusercontent.com/$OWNER/$REPO/main/"
         private val json = Json { ignoreUnknownKeys = true }
+
+        /** update/version.json: {"version":"1.0.0","apk":"update/lernen-1.0.0.apk","notizen":"…"} */
+        fun liesVersionsdatei(text: String): NeueVersion? {
+            val o = json.parseToJsonElement(text).jsonObject
+            val v = o["version"]?.jsonPrimitive?.content ?: return null
+            val apk = o["apk"]?.jsonPrimitive?.content ?: return null
+            val url = if (apk.startsWith("https://")) apk else RAW + apk.trimStart('/')
+            return NeueVersion(v.removePrefix("v"), url, o["notizen"]?.jsonPrimitive?.content ?: "")
+        }
 
         /** Liest die Antwort von /releases/latest: Tag vX.Y.Z und erste .apk-Datei. */
         fun liesRelease(text: String): NeueVersion? {

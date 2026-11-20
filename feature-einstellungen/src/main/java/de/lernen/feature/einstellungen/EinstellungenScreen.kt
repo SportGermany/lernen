@@ -33,9 +33,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
@@ -75,6 +72,7 @@ import de.lernen.core.data.repo.Sicherung
 import de.lernen.core.data.repo.SicherungInfo
 import de.lernen.core.data.repo.SicherungRepository
 import de.lernen.core.design.komponenten.Grau
+import de.lernen.core.design.komponenten.Segmente
 import de.lernen.core.design.komponenten.ZeileZwischen
 import de.lernen.core.design.theme.Lernen
 import de.lernen.core.sync.AppUpdate
@@ -191,11 +189,7 @@ fun EinstellungenScreen(version: String, onZurueck: () -> Unit, vm: Einstellunge
 
                 Abschnitt("Darstellung")
                 val optionen = listOf(Darstellung.SYSTEM to "System", Darstellung.HELL to "Hell", Darstellung.DUNKEL to "Dunkel")
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                    optionen.forEachIndexed { i, (d, t) ->
-                        SegmentedButton(selected = e.darstellung == d, onClick = { vm.darstellung(d) }, shape = SegmentedButtonDefaults.itemShape(i, optionen.size), icon = {}) { Text(t) }
-                    }
-                }
+                Segmente(optionen.map { it.second }, optionen.indexOfFirst { it.first == e.darstellung }, onWahl = { vm.darstellung(optionen[it].first) }, modifier = Modifier.padding(vertical = 8.dp))
 
                 Abschnitt("GitHub")
                 QuelleZeile(e.quelle, vm::quelle)
@@ -352,6 +346,7 @@ private fun AppAbschnitt(version: String, vm: EinstellungenViewModel) {
     val z by vm.updateZustand.collectAsStateWithLifecycle()
     Zeile("Version", version)
     Zeile("Nach Update suchen", "›") { vm.nachUpdateSuchen(version) }
+    Grau("Die App prüft einmal am Tag selbst, ob es eine neue Version gibt.", Modifier.padding(top = 6.dp))
     when (val zz = z) {
         is UpdateZustand.Verfuegbar -> Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("Neue Version ${zz.neu.version}", modifier = Modifier.weight(1f))

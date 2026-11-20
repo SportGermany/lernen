@@ -21,7 +21,7 @@ class PaketParserTest {
 
     @Test
     fun `alle drei Startpakete lassen sich fehlerfrei lesen`() {
-        assertEquals(4, TestDaten.startpakete.size)
+        assertEquals(8, TestDaten.startpakete.size)
         TestDaten.startpakete.forEach { (name, text) ->
             val e = ok(text)
             assertEquals("$name: Warnungen ${e.warnungen}", emptyList<Any>(), e.warnungen)
@@ -99,11 +99,11 @@ class PaketParserTest {
 
     @Test
     fun `Mathe-, Physik-Paket und Formelsammlung werden gelesen`() {
-        val m = ok(TestDaten.ressource("mathe-lgs-einsetzungsverfahren.json")).paket
+        val m = ok(TestDaten.paket("mathe-lgs-einsetzungsverfahren.json")).paket
         val mr = m.begleiter.first { it.id == "einsetzen" }.mitrechnen!!
         assertEquals(listOf("y = 2x − 1", "3x + 2y = 12"), mr.aufgabe)
         assertTrue(m.uebungen.sicher.all { it is Uebung.Rechnen })
-        val ph = ok(TestDaten.ressource("physik-elektrische-leistung.json")).paket
+        val ph = ok(TestDaten.paket("physik-elektrische-leistung.json")).paket
         val pr = ph.begleiter.first { it.id == "rechnen" }.mitrechnen!!
         assertEquals("physik", pr.art)
         assertEquals("A", pr.ergebnis!!.einheit)
@@ -116,10 +116,10 @@ class PaketParserTest {
 
     @Test
     fun `Englisch-Pakete mit Useful phrases`() {
-        val e = ok(TestDaten.ressource("englisch-formal-email.json"))
+        val e = ok(TestDaten.paket("englisch-formal-email.json"))
         assertEquals(emptyList<Any>(), e.warnungen)
         assertEquals(4, e.paket.begleiter.first { it.id == "opening" }.phrases.size)
-        val g = ok(TestDaten.ressource("englisch-if-clauses.json"))
+        val g = ok(TestDaten.paket("englisch-if-clauses.json"))
         assertEquals(emptyList<Any>(), g.warnungen)
         assertEquals(3, g.paket.ueberblick.aufbau.size)
     }

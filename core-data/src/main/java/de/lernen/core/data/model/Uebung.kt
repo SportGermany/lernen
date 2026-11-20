@@ -65,7 +65,7 @@ sealed interface Uebung {
         val tipp: String?,
     ) : Uebung
 
-    /** Typ, den diese App-Version noch nicht kennt (z. B. "rechenaufgabe" vor Meilenstein 5). */
+    /** Typ, den diese App-Version noch nicht kennt (z. B. ein neuer Typ aus einem neueren Paket). */
     data class Unbekannt(override val id: String?, val typ: String, val roh: JsonObject) : Uebung
 }
 
